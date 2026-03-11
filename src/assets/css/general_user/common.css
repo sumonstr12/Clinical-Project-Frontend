@@ -1,0 +1,5 @@
+.login-container {
+  display: flex;
+  flex-direction: column; /* vertically রাখবে */
+  row-gap: 60px;
+}
