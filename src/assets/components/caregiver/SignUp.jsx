@@ -19,9 +19,11 @@ const SignUp = () => {
     username: "",
     full_name: "",
     email: "",
+    patient_email: "", // Patient's email to link caregiver account
     password: "",
     confirmPassword: "", // For UI validation only
     phone: "",
+    relationship: '',
     agreeTerms: false,
   });
 
@@ -63,29 +65,42 @@ const SignUp = () => {
       return;
     }
 
+    // Caregiver specific validations
+    if (!formData.patient_email) {
+      errorToast("⚠️ Please enter the patient's email address");
+      return;
+    }
+    
+    if (!formData.relationship) {
+      errorToast("⚠️ Please specify your relationship to the patient");
+      return;
+    }
+
     if (!formData.agreeTerms) {
       errorToast("⚠️ Please agree to the Terms and Privacy Policy");
       return;
     }
 
-    // Prepare data for API (confirmPassword is NOT included)
+    // Prepare data for API
     const submitData = {
+      patient_email: formData.patient_email, // Patient's email to link caregiver account
       username: formData.username,
       full_name: formData.full_name,
-      email: formData.email,
+      email: formData.email, // Caregiver's email
       phone: formData.phone,
       password: formData.password,
-      role: "PATIENT"
+      role: "CAREGIVER",
+      relationship: formData.relationship
     };
 
     try {
-      const response = await myaxios.post("user-registration", submitData);
+      const response = await myaxios.post("caregiver-registration", submitData);
       const email = formData.email
       if (response.data.status === true) {
-        successToast("Please verify OTP.");
-        navigate('/otp-verification-registration', { state: { email } });
+        successToast(response.data.message);
+        navigate('/caregiver/login');
       } else {
-        errorToast(response.data.message || "User Registration Failed.");
+        errorToast(response.data.message || "Caregiver Registration Failed.");
       }
     } catch (error) {
       errorToast(error.response?.data?.message || "Registration failed. Please try again.");
@@ -176,8 +191,8 @@ const SignUp = () => {
 
             {/* Welcome Text */}
             <div className="model-welcome">
-              <h2>Join ClinicCare as a Patient</h2>
-              <p>Your journey to better health starts here</p>
+              <h2>Join ClinicCare as a Caregiver</h2>
+              <p>Support your loved ones in their healthcare journey</p>
               <div className="feature-badges">
                 <span className="feature-badge">
                   <i className="fas fa-check-circle"></i> 500+ Specialists
@@ -204,8 +219,8 @@ const SignUp = () => {
                 </div>
                 <span className="logo-text">ClinicCare</span>
               </div>
-              <h1>Patient Registration</h1>
-              <p>Create your patient account and start your wellness journey</p>
+              <h1>Caregiver Registration</h1>
+              <p>Create your caregiver account to help manage healthcare for your loved ones</p>
             </div>
 
             {/* Form */}
@@ -244,21 +259,41 @@ const SignUp = () => {
                 />
               </div>
 
-              {/* Email Field */}
+              {/* Email Field - Caregiver's Email */}
               <div className="form-group">
                 <label htmlFor="email">
                   <i className="fas fa-envelope"></i>
-                  Email Address *
+                  Your Email Address (Caregiver) *
                 </label>
                 <input
                   type="email"
                   id="email"
                   name="email"
-                  placeholder="john@example.com"
+                  placeholder="caregiver@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
                 />
+              </div>
+
+              {/* Patient Email Field */}
+              <div className="form-group">
+                <label htmlFor="patient_email">
+                  <i className="fas fa-user-injured"></i>
+                  Patient's Email Address *
+                </label>
+                <input
+                  type="email"
+                  id="patient_email"
+                  name="patient_email"
+                  placeholder="patient@example.com"
+                  value={formData.patient_email}
+                  onChange={handleChange}
+                  required
+                />
+                <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>
+                  Enter the email of the patient you'll be caring for
+                </small>
               </div>
 
               {/* Phone Field */}
@@ -276,6 +311,30 @@ const SignUp = () => {
                   onChange={handleChange}
                   required
                 />
+              </div>
+
+              {/* Relationship Field */}
+              <div className="form-group">
+                <label htmlFor="relationship">
+                  <i className="fas fa-handshake"></i>
+                  Relationship to Patient *
+                </label>
+                <select
+                  id="relationship"
+                  name="relationship"
+                  value={formData.relationship}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select relationship</option>
+                  <option value="Mother">Mother</option>
+                  <option value="Father">Father</option>
+                  <option value="Spouse">Spouse</option>
+                  <option value="Child">Child</option>
+                  <option value="Sibling">Sibling</option>
+                  <option value="Friend">Friend</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
               {/* Password Field */}
@@ -321,7 +380,7 @@ const SignUp = () => {
                 )}
               </div>
 
-              {/* Confirm Password Field - UI Only, Not Sent to API */}
+              {/* Confirm Password Field */}
               <div className="form-group password-field">
                 <label htmlFor="confirmPassword">
                   <i className="fas fa-lock"></i>
@@ -374,7 +433,7 @@ const SignUp = () => {
                 </label>
               </div>
 
-              {/* Submit Button - Disabled if passwords don't match */}
+              {/* Submit Button */}
               <button 
                 type="submit" 
                 className="btn-signup"
@@ -385,7 +444,7 @@ const SignUp = () => {
                 }}
               >
                 <i className="fas fa-user-plus"></i>
-                Create Patient Account
+                Create Caregiver Account
               </button>
 
               {/* Social Signup */}

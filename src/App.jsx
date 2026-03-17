@@ -12,6 +12,14 @@ import OtpVerifyPage from "./assets/pages/general_user/OtpVerifyPage";
 import NotFound from "./assets/partials/NotFound";
 import FirstLoginPage from "./assets/pages/general_user/FirstLoginPage";
 
+
+// Caregiver-related
+import SignUpPageCaregiver from "./assets/pages/caregiver/SignUpPageCaregiver";
+import LogInPageCaregiver from "./assets/pages/caregiver/LogInPageCaregiver";
+
+
+
+
 const App = () => {
   return (
     <div >
@@ -28,6 +36,11 @@ const App = () => {
             <Route path='/contact' element={ <Contact_Page /> } />
             <Route path='/first-login' element={ <FirstLoginPage /> } />
 
+            {/* Caregiver */}
+            <Route path="/caregiver/signup" element={<SignUpPageCaregiver />} />
+            <Route path="/caregiver/login" element={<LogInPageCaregiver />} />
+
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
