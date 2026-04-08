@@ -3,6 +3,7 @@ import Navbar from '../../partials/Navbar'
 import FirstLogIn from '../../components/general_user/FirstLogIn'
 import Footer from '../../partials/Footer'
 import '../../css/general_user/common.css'
+// import '../../css/global_app.css'
 
 const FirstLoginPage = () => {
   return (

@@ -3,6 +3,7 @@ import Navbar from '../../partials/Navbar'
 import Login from '../../components/caregiver/LogIn'
 import Footer from '../../partials/Footer'
 import '../../css/general_user/common.css'
+// import '../../css/global_app.css'
 
 const LogInPageCaregiver = () => {
   return (

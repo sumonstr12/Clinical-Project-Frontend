@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import "../../../App.css";
 import Navbar from "../../partials/Navbar";
 import Hero from "../../components/Hero";
 import FindDoctor from "../../components/FindDoctor";
@@ -8,6 +7,7 @@ import Services from "../../components/Services";
 import AboutUs from "../../components/AboutUs";
 import Contact from "../../components/Contact";
 import Footer from "../../partials/Footer";
+// import '../../css/global_app.css'
 
 import { useNavigate } from "react-router";
 

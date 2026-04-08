@@ -4,6 +4,7 @@ import Navbar from '../../partials/Navbar'
 import FindDoctor from '../../components/FindDoctor'
 import '../../css/general_user/common.css'
 import Footer from '../../partials/Footer'
+// import '../../css/global_app.css'
 
 
 const FindDoctorPage = () => {
