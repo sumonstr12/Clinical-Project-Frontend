@@ -15,7 +15,7 @@ export default function DoctorRequests({ requests = [] }) {
   const [apiData, setApiData] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
-  // 🔥 Fetch pending doctors
+  
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -30,7 +30,7 @@ export default function DoctorRequests({ requests = [] }) {
 
   const data = apiData.length > 0 ? apiData : requests;
 
-  // 🔥 Generic request handler
+
   const requestHandle = async (doctorId, isApproved) => {
     try {
       const res = await myaxios.post("admin/update-approval-request/", {
@@ -52,7 +52,6 @@ export default function DoctorRequests({ requests = [] }) {
     }
   };
 
-  // ✅ Handlers
   const handleApprove = (doc) => requestHandle(doc.id, "true");
   const handleReject = (doc) => requestHandle(doc.id, "false");
 
@@ -174,3 +173,5 @@ export default function DoctorRequests({ requests = [] }) {
     </>
   );
 }
+
+

@@ -26,6 +26,7 @@ import AdminDashboard from "./admin-assets/pages/AdminDashboard";
 
 // Not Found
 import NotFound from "./assets/partials/NotFound";
+import AdminLogin from './admin-assets/components/AdminLogin';
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
         {/* ================= ADMIN ROUTES ================= */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="admin-dashboard" element={<AdminDashboard />} />
+          <Route path='login' element={<AdminLogin />} />
         </Route>
 
 
