@@ -64,16 +64,20 @@ const Login = () => {
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
         }
-        if (response.data.user) {
-          localStorage.setItem('userData', JSON.stringify(response.data.user));
-        }
-
-        if (response.data.full_name){
-          localStorage.setItem('f_n', response.data.full_name)
-        }
+        localStorage.setItem('userData', JSON.stringify({
+          full_name: response.data.full_name,
+          role: response.data.role
+        }));
         
+        
+        if (response.data.role=="ADMIN"){
 
-        if (response.data.is_first_login){
+          setTimeout(() => {
+            navigate('/admin/admin-dashboard'); 
+          }, 1500);
+        }
+
+        else if (response.data.is_first_login){
             setTimeout(() => {
               navigate('/first-login'); 
             }, 1500);

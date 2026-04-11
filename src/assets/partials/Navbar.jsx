@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import Cookies from 'js-cookie';
+import myaxios from "../utilities/myaxios";
+import { successToast } from "../utilities/toast";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -68,25 +71,52 @@ const Navbar = () => {
     setMobileOpen(false);
   };
 
-  const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('rememberMe');
+  const handleLogout = async () => {
+
+    try {
+
+      const response =
+        await myaxios.post("user-logout");
+
+      if (response?.data?.status) {
+        successToast(
+          response.data.message ||
+          "Logged out successfully!"
+        );
+      }
+
+    } catch (error) {
+
+      console.log("Logout API error:", error);
+
+    } finally {
+
     
-    // Update state
-    setIsLoggedIn(false);
-    setUserData(null);
-    setShowProfileMenu(false);
-    setMobileOpen(false);
-    
-    // Navigate to home
-    navigate('/');
+      localStorage.removeItem("token");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("rememberMe");
+      localStorage.removeItem("role");
+
+      
+      Cookies.remove("refresh_token");
+
+      
+      setIsLoggedIn(false);
+      setUserData(null);
+      setShowProfileMenu(false);
+      setMobileOpen(false);
+
+      
+      navigate("/", { replace: true });
+
+    }
   };
 
   // Get user initials for avatar
   const getUserInitials = () => {
+    // console.log("User full name:", userData.full_name);
     if (userData?.full_name) {
+      
       const names = userData.full_name.split(' ');
       if (names.length >= 2) {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();

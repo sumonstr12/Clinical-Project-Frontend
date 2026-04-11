@@ -1,17 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Bell, Search, Menu, ChevronDown, User, Settings, LogOut } from 'lucide-react';
 import { useSidebar } from './SidebarContext';
+import myaxios from '../../assets/utilities/myaxios';
+import Cookies from "js-cookie";
+import { useNavigate } from 'react-router';
 
 export default function Topbar() {
   const { setSidebarOpen } = useSidebar();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [fname, setFname] = useState(localStorage.getItem('f_n') || 'Admin User');
   const [notifications, setNotifications] = useState([
     { id: 1, message: 'New appointment request from John Doe', time: '2 min ago', read: false },
     { id: 2, message: 'Dr. Smith updated patient records', time: '15 min ago', read: false },
     { id: 3, message: 'System backup completed successfully', time: '1 hour ago', read: true },
   ]);
+
+
+  const navigate = useNavigate();
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -38,6 +45,51 @@ export default function Topbar() {
 
   const handleMenuClick = () => {
     setSidebarOpen(prev => !prev);
+  };
+
+
+
+  // handle goto profile
+
+  const gotoAdminProfile = () => {
+    navigate("/admin/profile")
+  }
+
+
+  // Handle logout
+
+  
+  const handleLogout = async () => {
+
+    try {
+
+      const response =
+        await myaxios.post("user-logout");
+
+      if (response?.data?.status) {
+        successToast(response.data.message || "Logged out successfully!");
+      }
+
+    } catch (error) {
+
+      console.log("Logout API error:", error);
+
+    } finally {
+
+    
+      localStorage.removeItem("token");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("rememberMe");
+      localStorage.removeItem("role");
+
+      
+      Cookies.remove("refresh_token");
+
+
+      
+      navigate("/admin/login",);
+
+    }
   };
 
   return (
@@ -104,16 +156,16 @@ export default function Topbar() {
               onClick={() => setProfileOpen(!profileOpen)}
               className="profile-btn flex items-center space-x-3 text-slate-300 hover:text-white transition-colors"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <User className="w-5 h-5 text-white" />
               </div>
-              <span className="hidden md:block font-medium">Admin User</span>
+              <span className="hidden md:block font-medium">{fname}</span>
               <ChevronDown className="w-4 h-4 hidden md:block" />
             </button>
 
             {profileOpen && (
               <div className="profile-dropdown absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 py-2">
-                <button className="w-full px-4 py-2 text-left hover:bg-slate-700 transition-colors flex items-center space-x-2">
+                <button onClick={gotoAdminProfile} className="w-full px-4 py-2 text-left hover:bg-slate-700 transition-colors flex items-center space-x-2">
                   <User className="w-4 h-4" />
                   <span>Profile</span>
                 </button>
@@ -121,9 +173,9 @@ export default function Topbar() {
                   <Settings className="w-4 h-4" />
                   <span>Settings</span>
                 </button>
-                <button className="w-full px-4 py-2 text-left hover:bg-slate-700 transition-colors flex items-center space-x-2 text-red-400">
+                <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-slate-700 transition-colors flex items-center space-x-2 text-red-400">
                   <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                  <span  >Logout</span>
                 </button>
               </div>
             )}

@@ -1,20 +1,23 @@
 import { X, Stethoscope, LayoutDashboard, Users, HeartHandshake,  Calendar, UserCog, FileText, Settings } from 'lucide-react';
 import { useSidebar } from './SidebarContext';
 import { useState } from 'react'; 
+import { useNavigate, useLocation } from 'react-router';
 
 const menuItems = [
-  { name: 'Dashboard', icon: LayoutDashboard },
-  { name: 'Users', icon: Users },
-  { name: 'Doctors', icon : HeartHandshake },
-  { name: 'Appointments', icon: Calendar },
-  { name: 'Caregivers', icon: UserCog },
-  { name: 'Reports', icon: FileText },
-  { name: 'Settings', icon: Settings },
+  { name: 'Dashboard',    icon: LayoutDashboard, path: '/admin/admin-dashboard' },
+  { name: 'Users',        icon: Users,           path: '/admin/users' },
+  { name: 'Doctors',      icon: HeartHandshake,  path: '/admin/doctors' },
+  { name: 'Appointments', icon: Calendar,        path: '/admin/appointments' },
+  { name: 'Caregivers',   icon: UserCog,         path: '/admin/caregivers' },
+  { name: 'Reports',      icon: FileText,        path: '/admin/reports' },
+  { name: 'Settings',     icon: Settings,        path: '/admin/settings' },
 ];
 
 export default function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useSidebar();
   const [activeMenu, setActiveMenu] = useState('Dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <>
@@ -53,6 +56,7 @@ export default function Sidebar() {
               <button
                 key={item.name}
                 onClick={() => {
+                  navigate(item.path);
                   setActiveMenu(item.name);
                   setSidebarOpen(false);
                 }}

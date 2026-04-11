@@ -69,7 +69,7 @@ const Login = () => {
         }
 
         if (response.data.full_name){
-          localStorage.setItem('f_n', response.data.full_name)
+          localStorage.setItem('full_name', response.data.full_name)
         }
         
         setTimeout(() => {

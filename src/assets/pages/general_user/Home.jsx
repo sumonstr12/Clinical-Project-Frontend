@@ -7,12 +7,12 @@ import Services from "../../components/Services";
 import AboutUs from "../../components/AboutUs";
 import Contact from "../../components/Contact";
 import Footer from "../../partials/Footer";
-// import '../../css/global_app.css'
+
 
 import { useNavigate } from "react-router";
 
 import { successToast, errorToast } from "../../utilities/toast";
-// import Toast from "../../utilities/Toast";
+
 
 const Home = () => {
   const [activeSection, setActiveSection] = useState("home");
@@ -20,7 +20,6 @@ const Home = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const toastCounter = useRef(0);
 
-  // Scroll detection for active section & scroll-to-top
   useEffect(() => {
     const sectionIds = ["home", "find-doctor", "appointment", "services", "about", "contact"];
 

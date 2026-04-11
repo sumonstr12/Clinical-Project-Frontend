@@ -7,6 +7,8 @@ import alreadyLoggedIn from '../../assets/utilities/alreadyLoggedIn';
 const AdminLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
 
 
   alreadyLoggedIn("You are already logged in as an admin. Please log out first to switch accounts.");
@@ -26,11 +28,12 @@ const AdminLogin = () => {
         password: password,
       };
 
-      const response = await myaxios.post("user-login", loginData);
+      const response = await myaxios.post("admin/admin-login/", loginData);
       
       if (response.data.status === true) {
         successToast(response.data.message || "Login successful!");
         
+        localStorage.setItem('role', response.data.role || 'ADMIN');
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
         }
@@ -56,13 +59,6 @@ const AdminLogin = () => {
       setIsLoading(false);
     }
 
-    
-
-
-
-    
-
-    console.log('Login attempted with:', { email, password });
   };
 
   return (
