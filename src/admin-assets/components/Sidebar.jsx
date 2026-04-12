@@ -1,12 +1,11 @@
-import { X, Stethoscope, LayoutDashboard, Users, HeartHandshake,  Calendar, UserCog, FileText, Settings } from 'lucide-react';
+import { X, Stethoscope, LayoutDashboard, Users, HeartHandshake, Calendar, UserCog, FileText, Settings } from 'lucide-react';
 import { useSidebar } from './SidebarContext';
-import { useState } from 'react'; 
 import { useNavigate, useLocation } from 'react-router';
 
 const menuItems = [
   { name: 'Dashboard',    icon: LayoutDashboard, path: '/admin/admin-dashboard' },
   { name: 'Users',        icon: Users,           path: '/admin/users' },
-  { name: 'Doctors',      icon: HeartHandshake,  path: '/admin/doctors' },
+  { name: 'Doctors',      icon: HeartHandshake,  path: '/admin/non-approved-doctors' },
   { name: 'Appointments', icon: Calendar,        path: '/admin/appointments' },
   { name: 'Caregivers',   icon: UserCog,         path: '/admin/caregivers' },
   { name: 'Reports',      icon: FileText,        path: '/admin/reports' },
@@ -15,7 +14,6 @@ const menuItems = [
 
 export default function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useSidebar();
-  const [activeMenu, setActiveMenu] = useState('Dashboard');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -51,13 +49,12 @@ export default function Sidebar() {
         <nav className="p-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeMenu === item.name;
+            const isActive = location.pathname === item.path; // ✅ শুধু এই লাইন পরিবর্তন
             return (
               <button
                 key={item.name}
                 onClick={() => {
                   navigate(item.path);
-                  setActiveMenu(item.name);
                   setSidebarOpen(false);
                 }}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 mb-2 ${

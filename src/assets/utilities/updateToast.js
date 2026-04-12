@@ -3,20 +3,24 @@ import Toastify from "toastify-js";
 
 function earlierUpdate(msg) {
     Toastify({
-        text: `🔄 ${msg}`,
+        text: ` ${msg}`,
         duration: 3000,
-        gravity: "top", // `top` or `bottom`
-        position: "center", // `left`, `center` or `right`
+        gravity: "top", 
+        position: "center", 
         className: "update-toast",
         style: {
-            background: "linear-gradient(135deg, #f39c12 0%, #e67e22 100%)",
+            background: "linear-gradient(135deg, rgba(10, 25, 47, 0.85) 0%, rgba(2, 136, 209, 0.75) 100%)",
+            
             color: "#ffffff",
             borderRadius: "30px",
             padding: "12px 25px",
             fontSize: "14px",
             fontWeight: "500",
-            boxShadow: "0 10px 25px rgba(243, 156, 18, 0.3)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
+
+            boxShadow: "0 10px 25px rgba(2, 136, 209, 0.35)",
+
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+
             letterSpacing: "0.3px",
             display: "flex",
             alignItems: "center",
@@ -25,16 +29,17 @@ function earlierUpdate(msg) {
             margin: "0 auto",
             zIndex: 9999,
             textTransform: "none",
-            backdropFilter: "blur(10px)"
+            
+            backdropFilter: "blur(12px)"
         },
-        onClick: function() {} // Callback after click
+        onClick: function() {} 
     }).showToast();
 }
 
-// Alternative version with different styling
+
 function earlierUpdateAlt(msg) {
     Toastify({
-        text: `⚠️ ${msg}`,
+        text: ` ${msg}`,
         duration: 3500,
         gravity: "top",
         position: "center",
@@ -57,11 +62,10 @@ function earlierUpdateAlt(msg) {
             zIndex: 9999,
             fontFamily: "'Inter', -apple-system, sans-serif"
         },
-        onClick: function() {} // Callback after click
+        onClick: function() {} 
     }).showToast();
 }
 
-// Version with more detailed update information
 function earlierUpdateDetailed(title, description) {
     Toastify({
         text: `<div style="display: flex; flex-direction: column; gap: 5px;">

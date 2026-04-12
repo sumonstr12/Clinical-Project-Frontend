@@ -2,12 +2,13 @@ import { Users, TrendingUp, TrendingDown, Stethoscope, Heart, Calendar, AlertCir
 import myaxios from '../../assets/utilities/myaxios';
 import { useEffect, useState } from 'react';
 import useDashboardData from '../hooks/useDashBoardData';
+import CardLoading from '../../LoadingSkeleton/CardLoading';
 
 export default function StatisticsCards() {
 
   const data = useDashboardData();
 
-  if (!data) return <p>Loading...</p>;
+  if (!data) return <CardLoading />;
 
 
   const cards = [
@@ -42,7 +43,15 @@ export default function StatisticsCards() {
             changeType: 'up',
             icon: Heart,
             color: 'purple'
-          }
+          },
+          {
+            title: 'Total Approved Doctors',
+            value: data.active_doctors,
+            change: '+3%',
+            changeType: 'up',
+            icon: Stethoscope,
+            color: 'blue'
+          },
         ];
 
   const colorClasses = {

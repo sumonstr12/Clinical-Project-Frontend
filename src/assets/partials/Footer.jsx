@@ -1,94 +1,139 @@
 import React, { useState } from "react";
+import { earlierUpdate } from "../utilities/updateToast";
 
-const Footer = () => {
+const socialLinks = [
+  { icon: "fab fa-facebook-f", label: "Facebook" },
+  { icon: "fab fa-twitter", label: "Twitter" },
+  { icon: "fab fa-instagram", label: "Instagram" },
+  { icon: "fab fa-linkedin-in", label: "LinkedIn" },
+  { icon: "fab fa-youtube", label: "YouTube" },
+];
+
+const quickLinks = [
+  { label: "Home", id: "home" },
+  { label: "Find Doctor", id: "find-doctor" },
+  { label: "Get Appointment", id: "appointment" },
+  { label: "Services", id: "services" },
+  { label: "About Us", id: "about" },
+  { label: "Contact", id: "contact" },
+];
+
+const services = [
+  "General Consultation",
+  "Pediatrics",
+  "Cardiology",
+  "Neurology",
+  "Diagnostics",
+  "Emergency Care",
+];
+
+const legal = [
+  { label: "Privacy Policy" },
+  { label: "Terms of Service" },
+  { label: "Cookie Policy" },
+  { label: "HIPAA Notice" },
+  { label: "Accessibility" },
+];
+
+export default function Footer() {
   const [email, setEmail] = useState("");
 
   const handleSubscribe = (e) => {
     e.preventDefault();
     if (email.trim()) {
-      onSubscribe();
+      earlierUpdate("🔑 Newsletter coming soon!");
       setEmail("");
     }
   };
-
-  const socialLinks = [
-    { icon: "fab fa-facebook-f", href: "#", label: "Facebook" },
-    { icon: "fab fa-twitter", href: "#", label: "Twitter" },
-    { icon: "fab fa-instagram", href: "#", label: "Instagram" },
-    { icon: "fab fa-linkedin-in", href: "#", label: "LinkedIn" },
-    { icon: "fab fa-youtube", href: "#", label: "YouTube" },
-  ];
-
-  const quickLinks = [
-    { label: "Home", id: "home" },
-    { label: "Find Doctor", id: "find-doctor" },
-    { label: "Get Appointment", id: "appointment" },
-    { label: "Services", id: "services" },
-    { label: "About Us", id: "about" },
-    { label: "Contact", id: "contact" },
-  ];
-
-  const services = [
-    "General Consultation", "Pediatrics", "Cardiology",
-    "Neurology", "Diagnostics", "Emergency Care",
-  ];
-
-  const legal = [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-    { label: "HIPAA Notice", href: "#" },
-    { label: "Accessibility", href: "#" },
-  ];
 
   return (
     <footer className="footer" role="contentinfo" aria-label="Site Footer">
       <div className="footer-inner">
         <div className="footer-top">
-          {/* Brand Column */}
+
           <div className="footer-brand">
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem" }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 8,
-                background: "linear-gradient(135deg, var(--teal), #0288d1)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "1.1rem", color: "#fff"
-              }} aria-hidden="true">
-                <i className="fas fa-heartbeat"></i>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.6rem",
+                marginBottom: "0.75rem",
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  background:
+                    "linear-gradient(135deg, var(--teal), #0288d1)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.1rem",
+                  color: "#fff",
+                }}
+                aria-hidden="true"
+              >
+                <i className="fas fa-heartbeat" />
               </div>
-              <span className="logo-text-footer">ClinicCare</span>
+              <span className="logo-text-footer">
+                ClinicCare
+              </span>
             </div>
+
             <p>
               Connecting patients with trusted healthcare professionals.
               Quality care made accessible, anywhere, anytime.
             </p>
 
-            {/* Newsletter */}
-            <form className="newsletter-form" onSubmit={handleSubscribe} aria-label="Newsletter subscription">
+            <form
+              className="newsletter-form"
+              onSubmit={handleSubscribe}
+              aria-label="Newsletter subscription"
+            >
               <input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
                 aria-label="Email address for newsletter"
                 required
               />
-              <button type="submit" aria-label="Subscribe to newsletter">Subscribe</button>
+              <button
+                type="submit"
+                aria-label="Subscribe to newsletter"
+              >
+                Subscribe
+              </button>
             </form>
 
-            {/* Social Icons */}
-            <div className="social-icons" role="list" aria-label="Social media links">
+            {/* Social Icons FIXED */}
+            <div
+              className="social-icons"
+              role="list"
+              aria-label="Social media links"
+            >
               {socialLinks.map((s) => (
                 <a
                   key={s.label}
-                  href={s.href}
+                  href="#"
                   className="social-icon"
                   role="listitem"
                   aria-label={s.label}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    earlierUpdate(
+                      ` ${s.label} coming soon!`
+                    );
+                  }}
                 >
-                  <i className={s.icon} aria-hidden="true"></i>
+                  <i
+                    className={s.icon}
+                    aria-hidden="true"
+                  />
                 </a>
               ))}
             </div>
@@ -100,8 +145,23 @@ const Footer = () => {
             <ul>
               {quickLinks.map((l) => (
                 <li key={l.id}>
-                  <button onClick={() => onNav(l.id)} aria-label={`Navigate to ${l.label}`}>
-                    <i className="fas fa-chevron-right" aria-hidden="true" style={{ fontSize: "0.65rem", marginRight: "0.4rem", color: "var(--teal)" }}></i>
+                  <button
+                    onClick={() =>
+                      earlierUpdate(
+                        ` ${l.label} coming soon!`
+                      )
+                    }
+                    aria-label={`Navigate to ${l.label}`}
+                  >
+                    <i
+                      className="fas fa-chevron-right"
+                      aria-hidden="true"
+                      style={{
+                        fontSize: "0.65rem",
+                        marginRight: "0.4rem",
+                        color: "var(--teal)",
+                      }}
+                    />
                     {l.label}
                   </button>
                 </li>
@@ -109,14 +169,31 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Services */}
+          {/* Services FIXED */}
           <div className="footer-col">
             <h4>Our Services</h4>
             <ul>
               {services.map((s) => (
                 <li key={s}>
-                  <a href="#" onClick={(e) => e.preventDefault()} aria-label={s}>
-                    <i className="fas fa-chevron-right" aria-hidden="true" style={{ fontSize: "0.65rem", marginRight: "0.4rem", color: "var(--teal)" }}></i>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      earlierUpdate(
+                        ` ${s} coming soon!`
+                      );
+                    }}
+                    aria-label={s}
+                  >
+                    <i
+                      className="fas fa-chevron-right"
+                      aria-hidden="true"
+                      style={{
+                        fontSize: "0.65rem",
+                        marginRight: "0.4rem",
+                        color: "var(--teal)",
+                      }}
+                    />
                     {s}
                   </a>
                 </li>
@@ -124,47 +201,126 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Legal / Contact */}
+          {/* Legal FIXED */}
           <div className="footer-col">
             <h4>Legal & Info</h4>
             <ul>
               {legal.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href} aria-label={l.label}>
-                    <i className="fas fa-chevron-right" aria-hidden="true" style={{ fontSize: "0.65rem", marginRight: "0.4rem", color: "var(--teal)" }}></i>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      earlierUpdate(
+                        ` ${l.label} coming soon!`
+                      );
+                    }}
+                    aria-label={l.label}
+                  >
+                    <i
+                      className="fas fa-chevron-right"
+                      aria-hidden="true"
+                      style={{
+                        fontSize: "0.65rem",
+                        marginRight: "0.4rem",
+                        color: "var(--teal)",
+                      }}
+                    />
                     {l.label}
                   </a>
                 </li>
               ))}
             </ul>
-            <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.82rem", color: "var(--text-secondary)" }}>
-                <i className="fas fa-phone-alt" aria-hidden="true" style={{ color: "var(--teal)" }}></i>
+
+            <div
+              style={{
+                marginTop: "1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.82rem",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <i
+                  className="fas fa-phone-alt"
+                  aria-hidden="true"
+                  style={{ color: "var(--teal)" }}
+                />
                 +1 (800) 555-CARE
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.82rem", color: "var(--text-secondary)" }}>
-                <i className="fas fa-envelope" aria-hidden="true" style={{ color: "var(--teal)" }}></i>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.82rem",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <i
+                  className="fas fa-envelope"
+                  aria-hidden="true"
+                  style={{ color: "var(--teal)" }}
+                />
                 support@cliniccare.com
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer Bottom */}
+        {/* Footer Bottom FIXED */}
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} ClinicCare Healthcare System. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} ClinicCare
+            Healthcare System. All rights reserved.
+          </p>
+
           <div className="footer-links">
-            <a href="#" aria-label="Privacy Policy">Privacy Policy</a>
-            <a href="#" aria-label="Terms of Service">Terms of Service</a>
-            <a href="#" aria-label="Cookie Policy">Cookie Policy</a>
+            {[
+              "Privacy Policy",
+              "Terms of Service",
+              "Cookie Policy",
+            ].map((label) => (
+              <a
+                key={label}
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  earlierUpdate(
+                    ` ${label} coming soon!`
+                  );
+                }}
+                aria-label={label}
+              >
+                {label}
+              </a>
+            ))}
           </div>
-          <p style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-            Made with <span style={{ color: "#e53e3e" }}>❤️</span> for better healthcare
+
+          <p
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+            }}
+          >
+            Made with{" "}
+            <span style={{ color: "#e53e3e" }}>
+              ❤️
+            </span>{" "}
+            for better healthcare
           </p>
         </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}
