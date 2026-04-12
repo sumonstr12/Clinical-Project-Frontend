@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router';
 
 const menuItems = [
   { name: 'Dashboard',    icon: LayoutDashboard, path: '/admin/admin-dashboard' },
-  { name: 'Users',        icon: Users,           path: '/admin/users' },
+  { name: 'Patients',        icon: Users,        path: '/admin/patients' },
   { name: 'Doctors',      icon: HeartHandshake,  path: '/admin/non-approved-doctors' },
   { name: 'Appointments', icon: Calendar,        path: '/admin/appointments' },
   { name: 'Caregivers',   icon: UserCog,         path: '/admin/caregivers' },

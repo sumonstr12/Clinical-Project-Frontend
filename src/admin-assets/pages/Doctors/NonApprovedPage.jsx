@@ -5,10 +5,10 @@ import Topbar from "../../components/Topbar";
 import NonApprovalDoctors from '../../components/Doctors/NonApprovalDoctors';
 import ApprovedDoctors from '../../components/Doctors/ApprovedDoctors';
 
-const tabs = ['Non-Approved', 'Approved'];
+const tabs = ['Approved', 'Non-Approved'];
 
 export default function NonApprovedPage() {
-  const [activeTab, setActiveTab] = useState('Non-Approved');
+  const [activeTab, setActiveTab] = useState('Approved');
 
   return (
     <SidebarProvider>

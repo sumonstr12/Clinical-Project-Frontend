@@ -26,6 +26,8 @@ import AdminProfileViewPage from "./admin-assets/pages/AdminProfileViewPage";
 import AdminLogin from "./admin-assets/components/AdminLogin";
 // import NonApprovalDoctors from "./admin-assets/components/Doctors/NonApprovalDoctors";
 import NonApprovedPage from "./admin-assets/pages/Doctors/NonApprovedPage";
+import PatientListPage from "./admin-assets/pages/PatientCaregiver/PatientListPage";
+import CaregiverListPage from "./admin-assets/pages/PatientCaregiver/CaregiverListPage";
 
 // Routes
 import AdminRoute from "./Route/AdminRoute";
@@ -49,6 +51,10 @@ const App = () => {
             <Route path="profile" element={<AdminProfileViewPage />} />
 
             <Route path="non-approved-doctors" element={<NonApprovedPage />} />
+
+            <Route path="patients" element={<PatientListPage />} />
+
+            <Route path="caregivers" element={<CaregiverListPage />} />
               
             <Route index element={<NotFound />} />
 
