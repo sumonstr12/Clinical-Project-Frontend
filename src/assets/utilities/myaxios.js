@@ -35,19 +35,14 @@ myaxios.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
-            const refreshToken = Cookies.get("refresh_token");
-
-            
-            if (!refreshToken) {
-                logoutAndRedirect();
-                return Promise.reject(error);
-            }
-
             
             try {
                 const { data } = await axios.post(
                     "http://localhost:8000/api/token/refresh/",
-                    { refresh: refreshToken }
+                    {},
+                    {
+                        withCredentials: true
+                    }
                 );
 
                 localStorage.setItem("token", data.access);
