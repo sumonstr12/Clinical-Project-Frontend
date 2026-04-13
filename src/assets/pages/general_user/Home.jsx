@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "../../partials/Navbar";
 import Hero from "../../components/Hero";
 import FindDoctor from "../../components/FindDoctor";
-import Appointment from "../../components/Appointment";
+import Appointment from "../../components/appointments/Appointment";
 import Services from "../../components/Services";
 import AboutUs from "../../components/AboutUs";
 import Contact from "../../components/Contact";

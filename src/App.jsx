@@ -8,7 +8,7 @@ import AdminLayout from "./admin-assets/layouts/AdminLayout";
 import Home from "./assets/pages/general_user/Home";
 import SignUpPage from "./assets/pages/general_user/SignUpPage";
 import FindDoctorPage from "./assets/pages/general_user/FindDoctorPage";
-import AppointmentPage from "./assets/pages/general_user/AppointmentPage";
+import AppointmentPage from "./assets/pages/appointmentpage/AppointmentPage";
 import Service_Page from "./assets/pages/general_user/Service_Page";
 import AboutUs_Page from "./assets/pages/general_user/AboutUs_Page";
 import Contact_Page from "./assets/pages/general_user/Contact_Page";
@@ -35,6 +35,7 @@ import UserRoute from "./Route/UserRoute";
 
 // Not Found
 import NotFound from "./assets/partials/NotFound";
+import ProfileViewPage from "./assets/pages/general_user/ProfileViewPage";
 
 const App = () => {
   return (
@@ -89,6 +90,8 @@ const App = () => {
          
 
             <Route path="first-login" element={<FirstLoginPage />} />
+
+            <Route path="user-profile" element={<ProfileViewPage />} />
               
 
           </Route>

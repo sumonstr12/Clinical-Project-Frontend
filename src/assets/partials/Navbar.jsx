@@ -66,7 +66,7 @@ const Navbar = () => {
   };
 
   const goToProfile = () => {
-    navigate('/patient/profile');
+    navigate('/user-profile');
     setShowProfileMenu(false);
     setMobileOpen(false);
   };
