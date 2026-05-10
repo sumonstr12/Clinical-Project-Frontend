@@ -71,8 +71,8 @@ export default function ApprovedDoctors() {
     >
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">Non-Approved Doctors</h2>
-          <p className="mt-1 text-sm text-slate-500">Doctors pending approval review.</p>
+          <h2 className="text-lg font-semibold text-white">Approved Doctors</h2>
+          <p className="mt-1 text-sm text-slate-500">Approved doctors in the system.</p>
         </div>
         <div className="rounded-2xl border border-white/6 bg-white/5 px-3 py-2 text-xs text-slate-400 shrink-0">
           {totalCount} records
@@ -100,18 +100,19 @@ export default function ApprovedDoctors() {
                 <th className="px-4 py-4 font-medium">Qualification</th>
                 <th className="px-4 py-4 font-medium">Gender</th>
                 <th className="px-4 py-4 font-medium">Licenses</th>
+                <th className="px-4 py-4 font-medium">Total Patients</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10 bg-black/20">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center">
+                  <td colSpan={6} className="px-4 py-10 text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-blue-500" />
                   </td>
                 </tr>
               ) : doctors.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-slate-600">
+                  <td colSpan={6} className="px-4 py-10 text-center text-slate-600">
                     No doctors found.
                   </td>
                 </tr>
@@ -120,18 +121,40 @@ export default function ApprovedDoctors() {
                   <tr key={doc.id} className="transition hover:bg-white/5">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <Avatar name={doc.full_name} imgUrl={doc.img_url} />
-                        <span className="font-medium text-white capitalize">{doc.user.full_name}</span>
+                        <Avatar 
+                          name={doc.user?.full_name} 
+                          imgUrl={doc.img_url} 
+                        />
+
+                        <span className="font-medium text-white capitalize">
+                          {doc.user?.full_name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-slate-400">{doc.specialization}</td>
-                    <td className="px-4 py-4 text-slate-400">{doc.qualification}</td>
-                    <td className="px-4 py-4 text-slate-400 capitalize">{doc.gender}</td>
+
+                    <td className="px-4 py-4 text-slate-400">
+                      {doc.specialization}
+                    </td>
+
+                    <td className="px-4 py-4 text-slate-400">
+                      {doc.qualification}
+                    </td>
+
+                    <td className="px-4 py-4 text-slate-400 capitalize">
+                      {doc.gender}
+                    </td>
+
                     <td className="px-4 py-4">
                       <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 ring-1 ring-amber-500/20">
                         {doc.license_count} licenses
                       </span>
                     </td>
+
+                    {/* ✅ FIXED COLUMN */}
+                    <td className="px-4 py-4 text-slate-400">
+                      {doc.total_patients ?? 0}
+                    </td>
+
                   </tr>
                 ))
               )}

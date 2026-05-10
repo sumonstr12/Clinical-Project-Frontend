@@ -37,6 +37,12 @@ import UserRoute from "./Route/UserRoute";
 import NotFound from "./assets/partials/NotFound";
 import ProfileViewPage from "./assets/pages/general_user/ProfileViewPage";
 
+// Doctors
+import DoctorLogin from "./assets/components/doctor/DoctorLogin";
+import DoctorDashboard from "./assets/components/doctor/DoctorDashboard";
+// import DoctorSignup from "./assets/components/doctor/DoctorSignup";
+import DoctorSignUpPage from "./assets/pages/doctor/DoctorSignUpPage";
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -70,10 +76,18 @@ const App = () => {
 
           <Route index element={<Home />} />
 
+
+          <Route path="doctor/login" element={<DoctorLogin />} />
+
+          <Route path="doctor/signup" element={<DoctorSignUpPage />} />
+
+
           <Route path="patient/login" element={<Login_Page />} />
             
           <Route path="patient/signup" element={<SignUpPage />} />
-           
+
+          
+
           <Route path="otp-verification-registration" element={<OtpVerifyPage />} />
             
           <Route element={<UserRoute />}>
@@ -95,6 +109,15 @@ const App = () => {
               
 
           </Route>
+
+
+          {/* <Route element={<DoctorRoute />}>
+
+            <Route path="doctor-dashboard" element={<DoctorDashboard />} />
+
+          </Route> */}
+          <Route path="doctor/doctor-dashboard" element={<DoctorDashboard />} />
+
 
 
           <Route path="caregiver/signup" element={<SignUpPageCaregiver />} />

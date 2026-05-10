@@ -10,6 +10,10 @@ export const isAdmin = () => {
   return getRole() === "ADMIN";
 };
 
+export const isDoctor = () => {
+  return getRole() === "HEALTHCAREPROVIDER";
+}
+
 export const isUser = () => {
   return getRole() !== "ADMIN";
 };
