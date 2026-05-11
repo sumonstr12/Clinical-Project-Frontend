@@ -11,7 +11,7 @@ export const isAdmin = () => {
 };
 
 export const isDoctor = () => {
-  return getRole() === "HEALTHCAREPROVIDER";
+  return getRole() === "HEALTHCARE";
 }
 
 export const isUser = () => {

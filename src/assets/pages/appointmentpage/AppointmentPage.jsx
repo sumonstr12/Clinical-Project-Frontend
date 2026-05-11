@@ -6,9 +6,11 @@ import Footer from '../../partials/Footer'
 
 const AppointmentPage = () => {
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Navbar />
-        <Appointment />
+        <div style={{ flex: 1, padding: '20px' }}>
+          <Appointment />
+        </div>
         <Footer />
     </div>
   )

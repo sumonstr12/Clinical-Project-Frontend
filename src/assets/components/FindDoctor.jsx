@@ -51,9 +51,6 @@ const FindDoctor = () => {
     }
   };
 
-  // --------------------------
-  // Debounce + Fetch
-  // --------------------------
 
   useEffect(() => {
 
@@ -64,10 +61,6 @@ const FindDoctor = () => {
     return () => clearTimeout(delay);
 
   }, [search, page, filter]);
-
-  // --------------------------
-  // UI SAME AS BEFORE
-  // --------------------------
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -96,7 +89,6 @@ const FindDoctor = () => {
         </p>
       </div>
 
-      {/* Search Bar */}
       <div className="search-bar" role="search">
 
         <input
@@ -123,7 +115,6 @@ const FindDoctor = () => {
 
       </div>
 
-      {/* Doctor Cards */}
       <div className="doctors-grid">
 
         {doctors.length === 0 ? (

@@ -1,11 +1,11 @@
 /* doctor-signup.css - Complete styles for DoctorSignup component */
 
 /* Reset and Base */
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 
 /* Page Container */
 .ds-page {

@@ -1,5 +1,7 @@
 import { Outlet } from "react-router";
 import { useEffect } from "react";
+// import "../../css/doctor/doctor-signup.css";
+import "../css/doctor/doctor-signup.css";
 
 export default function UserLayout() {
 

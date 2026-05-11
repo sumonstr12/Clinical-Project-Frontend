@@ -110,12 +110,6 @@ const App = () => {
 
           </Route>
 
-
-          {/* <Route element={<DoctorRoute />}>
-
-            <Route path="doctor-dashboard" element={<DoctorDashboard />} />
-
-          </Route> */}
           <Route path="doctor/doctor-dashboard" element={<DoctorDashboard />} />
 
 

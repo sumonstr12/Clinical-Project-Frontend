@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import "../../css/doctor/doctor-signup.css";
 import { errorToast, successToast } from "../../utilities/toast";
 import myaxios from "../../utilities/myaxios";
 
@@ -582,6 +581,7 @@ export default function DoctorSignup() {
                   ))}
                 </Select>
                 <FieldError msg={errors.qualification} />
+                <p className="ds-role-hint">Multiple qualifications can't be selected.this will fix in the next update</p>
               </div>
             </div>
           )}
@@ -613,15 +613,6 @@ export default function DoctorSignup() {
                   error={errors.license_count}
                 />
                 <FieldError msg={errors.license_count} />
-              </div>
-              
-              <div>
-                <Label>Account Role</Label>
-                <div className="ds-role-badge">
-                  <span className="ds-role-dot" />
-                  HEALTHCAREPROVIDER
-                </div>
-                <p className="ds-role-hint">Automatically assigned role — cannot be changed</p>
               </div>
             </div>
           )}
