@@ -104,18 +104,15 @@ const Appointment = () => {
   const isToday = (d) =>
     d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
-  // Fixed: Correct logic for date selection (only next 20 days allowed)
   const isDateSelectable = (day) => {
     const date = new Date(year, month, day);
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
-    // Set start of today for comparison
+    
     todayStart.setHours(0, 0, 0, 0);
     
-    // Check if date is in the past
     if (date < todayStart) return false;
     
-    // Check if date is more than 20 days in future
     const maxFutureDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 20);
     maxFutureDate.setHours(23, 59, 59, 999);
     
