@@ -7,14 +7,14 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 const TIME_SLOTS = [
-  { time: "09:00 AM" },
-  { time: "10:00 AM" },
-  { time: "11:00 AM" },
-  { time: "12:00 PM" },
-  { time: "02:00 PM" },
-  { time: "03:00 PM" },
-  { time: "04:00 PM" },
-  { time: "05:00 PM" },
+  { id: 1, time: "09:00 AM" },
+  { id: 2, time: "10:00 AM" },
+  { id: 3, time: "11:00 AM" },
+  { id: 4, time: "12:00 PM" },
+  { id: 5, time: "02:00 PM" },
+  { id: 6, time: "03:00 PM" },
+  { id: 7, time: "04:00 PM" },
+  { id: 8, time: "05:00 PM" },
 ];
 
 const steps = [
@@ -23,6 +23,15 @@ const steps = [
   { num: 3, icon: "fas fa-file-medical", title: "Provide Details", desc: "Share a brief description of your symptoms or reason for visit so the doctor can be prepared." },
   { num: 4, icon: "fas fa-check-circle", title: "Confirm & Attend", desc: "Review your appointment details and confirm booking." },
 ];
+
+const formatTimeSlot = (startTime) => {
+  const [hours, minutes, seconds] = startTime.split(':');
+  let hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12;
+  hour = hour === 0 ? 12 : hour;
+  return `${hour}:${minutes} ${ampm}`;
+};
 
 const Appointment = () => {
   const today = new Date();
@@ -44,12 +53,15 @@ const Appointment = () => {
     patientContact: ""
   });
   
-  // Doctor API states
   const [doctors, setDoctors] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [specialties, setSpecialties] = useState(["All Specialties"]);
+  
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotsFetched, setSlotsFetched] = useState(false);
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -83,15 +95,61 @@ const Appointment = () => {
     }
   };
 
+  const fetchAvailableSlots = async () => {
+    if (!selectedDoctor || !selectedDate) return;
+    
+    setLoadingSlots(true);
+    try {
+      const formattedDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`;
+      const response = await myaxios.post("/doctor/available-slots/", {
+        doctor: selectedDoctor.id,
+        date: formattedDate
+      });
+      
+      if (response.data.status) {
+        const transformedSlots = response.data.data.map(slot => ({
+          id: slot.slot_id,
+          time: formatTimeSlot(slot.start_time),
+          start_time: slot.start_time,
+          end_time: slot.end_time
+        }));
+        setAvailableSlots(transformedSlots);
+        setSlotsFetched(true);
+      } else {
+        setAvailableSlots([]);
+        setSlotsFetched(true);
+      }
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      setAvailableSlots([]);
+      setSlotsFetched(true);
+      earlierUpdateAlt("Failed to load available slots");
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
   useEffect(() => {
     fetchDoctors();
   }, [page, searchTerm, selectedSpecialty]);
+
+  useEffect(() => {
+    if (currentStep === 2 && selectedDoctor && selectedDate) {
+      fetchAvailableSlots();
+    } else if (currentStep !== 2){
+      setAvailableSlots([]);
+      setSlotsFetched(false);
+      // setSelectedSlot(null);
+    }
+  }, [currentStep, selectedDoctor, selectedDate, year, month]);
 
   const prevMonth = () => {
     if (month === 0) { setMonth(11); setYear(y => y - 1); }
     else setMonth(m => m - 1);
     setSelectedDate(-1);
     setSelectedSlot(null);
+    setAvailableSlots([]);
+    setSlotsFetched(false);
   };
 
   const nextMonth = () => {
@@ -99,6 +157,8 @@ const Appointment = () => {
     else setMonth(m => m + 1);
     setSelectedDate(-1);
     setSelectedSlot(null);
+    setAvailableSlots([]);
+    setSlotsFetched(false);
   };
 
   const isToday = (d) =>
@@ -107,7 +167,6 @@ const Appointment = () => {
   const isDateSelectable = (day) => {
     const date = new Date(year, month, day);
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
     
     todayStart.setHours(0, 0, 0, 0);
     
@@ -121,25 +180,40 @@ const Appointment = () => {
     return true;
   };
 
-  const isPastTime = (timeStr) => {
-    const isSelectedToday =
-      selectedDate === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear();
+  const isSlotAvailable = (slotId) => {
+    return availableSlots.some(slot => slot.id === slotId);
+  };
 
-    if (!isSelectedToday) return false;
+  const isPastTime = (timeStr, slotStartTime) => {
+  const isSelectedToday =
+    selectedDate === today.getDate() &&
+    month === today.getMonth() &&
+    year === today.getFullYear();
 
+  if (!isSelectedToday) return false;
+
+  // If we have the start_time from API, use that for comparison
+  if (slotStartTime) {
+    const [hours, minutes] = slotStartTime.split(':').map(Number);
+    const slotTime = new Date(year, month, selectedDate, hours, minutes);
+    const currentTime = new Date();
+    return slotTime < currentTime;
+  }
+
+  // Fallback: Parse from timeStr (format like "09:00 AM")
+  if (timeStr) {
     const [time, meridiem] = timeStr.split(" ");
     let [hours, minutes] = time.split(":").map(Number);
     if (meridiem === "PM" && hours !== 12) hours += 12;
     if (meridiem === "AM" && hours === 12) hours = 0;
-
+    
     const slotTime = new Date(year, month, selectedDate, hours, minutes);
     const currentTime = new Date();
-    
     return slotTime < currentTime;
-  };
-
+  }
+  
+  return false;
+};
   const calDates = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
 
   const handleNextStep = () => {
@@ -172,40 +246,65 @@ const Appointment = () => {
   };
 
   const handleConfirmBooking = async () => {
+
+    console.log(selectedSlot)
+
+    if (!selectedDoctor || !selectedSlot) {
+      earlierUpdateAlt("Booking information is missing. Please go back and select doctor and time slot again.");
+      return;
+    }
+
     try {
       const bookingData = {
-        doctor_id: selectedDoctor.id,
-        appointment_date: `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`,
-        appointment_time: selectedSlot,
-        patient_name: appointmentDetails.patientName,
-        patient_age: appointmentDetails.patientAge,
-        patient_contact: appointmentDetails.patientContact,
-        symptoms: appointmentDetails.symptoms,
-        notes: appointmentDetails.notes
+        provider: selectedDoctor.id,
+        slot: selectedSlot.id,
+        issue_description: appointmentDetails.symptoms,
+        additional_notes: appointmentDetails.notes,
+        meeting_link: "",
+        status: "PENDING",
+        appointment_date: `${year}-${String(month + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`,
       };
-      
-      const response = await myaxios.post("/book-appointment", bookingData);
-      
+
+      console.log("Booking Data:", bookingData);
+
+      const response = await myaxios.post("appointment/create/", bookingData);
+
       if (response.data.status) {
-        earlierUpdateDetailed("Appointment booked successfully!");
-        // Reset form or navigate to confirmation page
+        earlierUpdateDetailed("Appointment booked successfully!", "Your appointment has been booked. You can view it in your dashboard.");
+
         setCurrentStep(1);
         setSelectedDoctor(null);
         setSelectedDate(today.getDate());
         setSelectedSlot(null);
+        setAvailableSlots([]);
+        setSlotsFetched(false);
+
         setAppointmentDetails({
           symptoms: "",
           notes: "",
           patientName: "",
           patientAge: "",
-          patientContact: ""
+          patientContact: "",
         });
+
       } else {
-        earlierUpdateAlt(response.data.message || "Booking failed. Please try again.");
+        earlierUpdateAlt(
+          response.data.message || "Booking failed. Please try again."
+        );
       }
+
     } catch (error) {
       console.error("Booking error:", error);
-      earlierUpdateAlt("Failed to book appointment. Please try again.");
+
+      if (error.response?.data) {
+        earlierUpdateAlt(
+          JSON.stringify(error.response.data)
+        );
+      } else {
+        earlierUpdateAlt(
+          "Failed to book appointment. Please try again."
+        );
+      }
     }
   };
 
@@ -359,6 +458,11 @@ const Appointment = () => {
                 </div>
                 <div className="ap-cal-info">
                   <small><i className="fas fa-info-circle"></i> You can book appointments only for the next 20 days</small>
+                  {selectedDoctor && (
+                    <small style={{ marginLeft: "1rem", color: "var(--ap-teal)" }}>
+                      <i className="fas fa-user-md"></i> Doctor: {selectedDoctor.user?.full_name}
+                    </small>
+                  )}
                 </div>
 
                 <div className="ap-cal-days" role="row">
@@ -374,7 +478,14 @@ const Appointment = () => {
                       <div
                         key={d}
                         className={`ap-cal-date${selectedDate === d ? " ap-selected" : ""}${isToday(d) && selectedDate !== d ? " ap-today" : ""}${!selectable ? " ap-inactive" : ""}`}
-                        onClick={() => { if (selectable) { setSelectedDate(d); setSelectedSlot(null); } }}
+                        onClick={() => { 
+                          if (selectable) { 
+                            setSelectedDate(d); 
+                            setSelectedSlot(null);
+                            setAvailableSlots([]);
+                            setSlotsFetched(false);
+                          } 
+                        }}
                         role="gridcell"
                         aria-label={`${MONTHS[month]} ${d}, ${year}${!selectable ? " (unavailable)" : ""}`}
                         aria-selected={selectedDate === d}
@@ -393,23 +504,77 @@ const Appointment = () => {
                     <i className="fas fa-clock" aria-hidden="true" style={{ color: "var(--ap-teal)", marginRight: "0.4rem" }} />
                     Available Time Slots
                   </h5>
-                  <div className="ap-slots-grid" role="group" aria-label="Available time slots">
-                    {TIME_SLOTS.map((s) => {
-                      const pastTime = isPastTime(s.time);
-                      return (
-                        <button
-                          key={s.time}
-                          className={`ap-slot${pastTime ? " ap-booked" : ""}${selectedSlot === s.time ? " ap-active" : ""}`}
-                          disabled={pastTime}
-                          onClick={() => !pastTime && setSelectedSlot(s.time)}
-                          aria-label={`${s.time}${pastTime ? " - Time passed" : ""}`}
-                          aria-pressed={selectedSlot === s.time}
-                        >
-                          {s.time}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  
+                  {loadingSlots ? (
+                    <div className="ap-loading-slots">
+                      <i className="fas fa-spinner fa-spin"></i>
+                      <p>Loading available slots...</p>
+                    </div>
+                  ) : slotsFetched && availableSlots.length === 0 ? (
+                    <div className="ap-no-slots">
+                      <i className="fas fa-calendar-times"></i>
+                      <p>No available slots for this date. Please select another date.</p>
+                    </div>
+                  ) : (
+                    <div className="ap-slots-grid" role="group" aria-label="Available time slots">
+                      {TIME_SLOTS.map((slot) => {
+                        const apiSlot = availableSlots.find(s => {
+                          console.log(`Searching for slot ${slot.id}:`, s.id === slot.id);
+                          return s.id === slot.id;
+                        });
+                        
+                        console.log(`Slot ${slot.id} (${slot.time}):`, {
+                          found: !!apiSlot,
+                          apiSlotData: apiSlot,
+                          availableSlotsLength: availableSlots.length
+                        });
+
+                        const isAvailable = !!apiSlot;
+                        const isPast = apiSlot
+                          ? isPastTime(slot.time, apiSlot.start_time)
+                          : false;
+                        const isDisabled = !isAvailable || isPast;
+
+                        return (
+                          <button
+                            key={slot.id}
+                            className={`ap-slot${isDisabled ? " ap-booked" : ""}${selectedSlot?.id === slot.id ? " ap-active" : ""}`}
+                            disabled={isDisabled}
+                            onClick={() => {
+                              console.log('=== SLOT CLICKED ===');
+                              console.log('Slot clicked:', { slotId: slot.id, time: slot.time });
+                              console.log('isDisabled:', isDisabled);
+                              console.log('apiSlot:', apiSlot);
+                              
+                              if (!isDisabled && apiSlot) {
+                                console.log('Setting selectedSlot to:', apiSlot);
+                                setSelectedSlot(apiSlot);
+                                
+                                // স্টেট সেট হওয়ার পর চেক করতে:
+                                setTimeout(() => {
+                                  console.log('After timeout, selectedSlot should be:', apiSlot);
+                                }, 100);
+                              } else {
+                                console.log('Cannot select slot. Reasons:', {
+                                  disabled: isDisabled,
+                                  noApiSlot: !apiSlot,
+                                  isPast: isPast
+                                });
+                              }
+                            }}
+                          >
+                            {slot.time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {!loadingSlots && slotsFetched && availableSlots.length > 0 && (
+                    <div className="ap-slots-info">
+                      <small><i className="fas fa-info-circle"></i> Showing available slots for {MONTHS[month]} {selectedDate}, {year}</small>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -498,7 +663,7 @@ const Appointment = () => {
                     <h4><i className="fas fa-calendar-alt"></i> Appointment Schedule</h4>
                     <div className="ap-summary-details">
                       <p><strong>Date:</strong> {MONTHS[month]} {selectedDate}, {year}</p>
-                      <p><strong>Time:</strong> {selectedSlot}</p>
+                      <p><strong>Time:</strong> {selectedSlot?.time}</p>
                     </div>
                   </div>
 

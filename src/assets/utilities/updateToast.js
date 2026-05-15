@@ -69,7 +69,7 @@ function earlierUpdateAlt(msg) {
 function earlierUpdateDetailed(title, description) {
     Toastify({
         text: `<div style="display: flex; flex-direction: column; gap: 5px;">
-            <strong style="font-size: 15px; color: #f39c12;">🔄 ${title}</strong>
+            <strong style="font-size: 15px; color: #f39c12;">${title}</strong>
             <span style="font-size: 13px; opacity: 0.9;">${description}</span>
         </div>`,
         duration: 4000,
