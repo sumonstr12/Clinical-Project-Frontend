@@ -50,6 +50,11 @@ const Navbar = () => {
     setMobileOpen(false);
   };
 
+  const goToUserAppointments = () => {
+    navigate('/users/appointments');
+    setMobileOpen(false);
+  };
+
   const goToContact = () => {
     navigate('/contact');
     setMobileOpen(false);
@@ -183,7 +188,7 @@ const Navbar = () => {
                     <i className="fas fa-user"></i>
                     My Profile
                   </button>
-                  <button onClick={goToAppointment}>
+                  <button onClick={goToUserAppointments}>
                     <i className="fas fa-calendar-check"></i>
                     My Appointments
                   </button>

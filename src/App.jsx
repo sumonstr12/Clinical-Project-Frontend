@@ -44,6 +44,10 @@ import DoctorScheduleaPage from "./assets/pages/doctor/DoctorScheduleaPage";
 // import DoctorSignup from "./assets/components/doctor/DoctorSignup";
 import DoctorSignUpPage from "./assets/pages/doctor/DoctorSignUpPage";
 
+
+// Appointments
+import AppoiontmentViewbyUserPage from "./assets/pages/appointmentpage/AppoiontmentViewbyUserPage";
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -113,6 +117,8 @@ const App = () => {
 
           <Route path="doctor/doctor-dashboard" element={<DoctorDashboard />} />
           <Route path="doctor/schedule-update" element={<DoctorScheduleaPage />} />
+
+          <Route path="users/appointments" element={<AppoiontmentViewbyUserPage />} />
 
 
 

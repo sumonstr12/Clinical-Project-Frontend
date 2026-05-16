@@ -1,0 +1,754 @@
+
+.vsu-dark-professional {
+  --vsu-bg-primary: #0a0e17;
+  --vsu-bg-secondary: #111827;
+  --vsu-bg-card: #1a2332;
+  --vsu-bg-hover: #1f2a3e;
+  --vsu-border-color: #2d3748;
+  --vsu-text-primary: #e2e8f0;
+  --vsu-text-secondary: #94a3b8;
+  --vsu-text-muted: #64748b;
+  --vsu-accent-primary: #3b82f6;
+  --vsu-accent-secondary: #8b5cf6;
+  --vsu-accent-success: #10b981;
+  --vsu-accent-warning: #f59e0b;
+  --vsu-accent-danger: #ef4444;
+  --vsu-accent-missed: #6b7280;
+  --vsu-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --vsu-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.vsu-schedule-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--vsu-bg-primary) 0%, #0f172a 100%);
+  padding: 2rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Static Header */
+.vsu-static-header {
+  background: var(--vsu-bg-secondary);
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--vsu-border-color);
+  box-shadow: var(--vsu-shadow);
+  text-align: center;
+}
+
+.vsu-static-header h1 {
+  color: var(--vsu-text-primary);
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.01em;
+}
+
+.vsu-data-protection-notice {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid var(--vsu-accent-danger);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: #fca5a5;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* Tabs Container */
+.vsu-tabs-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: var(--vsu-bg-secondary);
+  padding: 0.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--vsu-border-color);
+  flex-wrap: wrap;
+}
+
+.vsu-tab {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--vsu-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vsu-tab:hover {
+  background: var(--vsu-bg-hover);
+  color: var(--vsu-text-primary);
+}
+
+.vsu-tab-active {
+  background: var(--vsu-accent-primary);
+  color: white;
+}
+
+.vsu-tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+}
+
+.vsu-tab-active .vsu-tab-count {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Loading Spinner */
+.vsu-loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.vsu-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--vsu-border-color);
+  border-top-color: var(--vsu-accent-primary);
+  border-radius: 50%;
+  animation: vsu-spin 1s linear infinite;
+}
+
+@keyframes vsu-spin {
+  to { transform: rotate(360deg); }
+}
+
+.vsu-loading-spinner p {
+  color: var(--vsu-text-secondary);
+  font-size: 1rem;
+}
+
+/* Error Message */
+.vsu-error-message {
+  text-align: center;
+  padding: 3rem;
+  background: var(--vsu-bg-card);
+  border-radius: 1rem;
+  border: 1px solid var(--vsu-border-color);
+}
+
+.vsu-error-message p {
+  color: #f87171;
+  margin-bottom: 1.5rem;
+}
+
+.vsu-retry-btn {
+  background: var(--vsu-accent-primary);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-retry-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Appointments List */
+.vsu-appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.vsu-appointment-card {
+  background: var(--vsu-bg-card);
+  border-radius: 1rem;
+  border: 1px solid var(--vsu-border-color);
+  transition: all 0.25s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.vsu-appointment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--vsu-shadow-lg);
+  border-color: var(--vsu-accent-primary);
+}
+
+/* Card Header with Avatar */
+.vsu-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--vsu-border-color);
+  flex-wrap: wrap;
+}
+
+.vsu-doctor-avatar {
+  flex-shrink: 0;
+}
+
+.vsu-avatar-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--vsu-accent-primary);
+}
+
+.vsu-avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--vsu-accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+}
+
+.vsu-doctor-info {
+  flex: 1;
+}
+
+.vsu-doctor-info h3 {
+  color: var(--vsu-text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.vsu-specialization {
+  color: var(--vsu-accent-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(59, 130, 246, 0.15);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+}
+
+.vsu-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Status Badges */
+.vsu-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.vsu-status-confirmed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.vsu-status-completed {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.vsu-status-canceled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.vsu-status-missed {
+  background: rgba(107, 114, 128, 0.15);
+  color: #9ca3af;
+  border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.vsu-status-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.vsu-appointment-type {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+
+/* Card Body */
+.vsu-card-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.vsu-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.vsu-info-label {
+  color: var(--vsu-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  min-width: 110px;
+}
+
+.vsu-info-value {
+  color: var(--vsu-text-primary);
+  font-size: 0.875rem;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* Card Footer Buttons */
+.vsu-card-footer {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--vsu-border-color);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.vsu-details-btn {
+  background: transparent;
+  color: var(--vsu-accent-primary);
+  border: 1px solid var(--vsu-accent-primary);
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-details-btn:hover {
+  background: var(--vsu-accent-primary);
+  color: white;
+}
+
+.vsu-join-btn {
+  background: var(--vsu-accent-success);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-join-btn:hover {
+  background: #0d9668;
+  transform: scale(1.02);
+}
+
+.vsu-cancel-btn {
+  background: transparent;
+  color: var(--vsu-accent-danger);
+  border: 1px solid var(--vsu-accent-danger);
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-cancel-btn:hover {
+  background: var(--vsu-accent-danger);
+  color: white;
+}
+
+.vsu-reschedule-btn {
+  background: transparent;
+  color: var(--vsu-accent-warning);
+  border: 1px solid var(--vsu-accent-warning);
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-reschedule-btn:hover {
+  background: var(--vsu-accent-warning);
+  color: white;
+}
+
+.vsu-prescription-btn {
+  background: transparent;
+  color: #a78bfa;
+  border: 1px solid #a78bfa;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-prescription-btn:hover {
+  background: #a78bfa;
+  color: white;
+}
+
+.vsu-review-btn {
+  background: transparent;
+  color: #fbbf24;
+  border: 1px solid #fbbf24;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-review-btn:hover {
+  background: #fbbf24;
+  color: #1a1a2e;
+}
+
+.vsu-bookagain-btn {
+  background: transparent;
+  color: var(--vsu-accent-primary);
+  border: 1px solid var(--vsu-accent-primary);
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vsu-bookagain-btn:hover {
+  background: var(--vsu-accent-primary);
+  color: white;
+}
+
+/* No Appointments */
+.vsu-no-appointments {
+  text-align: center;
+  padding: 4rem;
+  background: var(--vsu-bg-card);
+  border-radius: 1rem;
+  color: var(--vsu-text-secondary);
+}
+
+/* Modal Overlay */
+.vsu-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: vsu-fadeIn 0.2s ease;
+}
+
+@keyframes vsu-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.vsu-modal-content {
+  background: var(--vsu-bg-secondary);
+  border-radius: 1.25rem;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--vsu-border-color);
+  box-shadow: var(--vsu-shadow-lg);
+  animation: vsu-slideUp 0.3s ease;
+}
+
+@keyframes vsu-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vsu-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--vsu-border-color);
+  position: sticky;
+  top: 0;
+  background: var(--vsu-bg-secondary);
+  z-index: 10;
+}
+
+.vsu-modal-header h2 {
+  color: var(--vsu-text-primary);
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.vsu-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--vsu-text-muted);
+  font-size: 1.75rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+  padding: 0 0.5rem;
+}
+
+.vsu-close-btn:hover {
+  color: var(--vsu-accent-danger);
+}
+
+.vsu-modal-body {
+  padding: 1.5rem;
+}
+
+.vsu-detail-section {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--vsu-border-color);
+}
+
+.vsu-detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.vsu-detail-section h3 {
+  color: var(--vsu-accent-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vsu-detail-row {
+  display: flex;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid rgba(45, 55, 72, 0.5);
+}
+
+.vsu-detail-row:last-child {
+  border-bottom: none;
+}
+
+.vsu-detail-label {
+  width: 140px;
+  flex-shrink: 0;
+  color: var(--vsu-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.vsu-detail-row span:last-child {
+  color: var(--vsu-text-primary);
+  font-size: 0.875rem;
+  word-break: break-word;
+  flex: 1;
+}
+
+.vsu-doctor-img-preview {
+  max-width: 100px;
+  border-radius: 0.75rem;
+  border: 2px solid var(--vsu-border-color);
+  margin-top: 0.5rem;
+}
+
+.vsu-map-link {
+  color: var(--vsu-accent-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vsu-map-link:hover {
+  text-decoration: underline;
+}
+
+.vsu-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--vsu-border-color);
+  text-align: right;
+  background: var(--vsu-bg-secondary);
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.vsu-close-modal-btn {
+  background: var(--vsu-accent-primary);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vsu-close-modal-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.vsu-join-modal-btn,
+.vsu-cancel-modal-btn,
+.vsu-reschedule-modal-btn,
+.vsu-prescription-modal-btn,
+.vsu-review-modal-btn,
+.vsu-bookagain-modal-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.vsu-join-modal-btn {
+  background: var(--vsu-accent-success);
+  color: white;
+}
+
+.vsu-cancel-modal-btn {
+  background: var(--vsu-accent-danger);
+  color: white;
+}
+
+.vsu-reschedule-modal-btn {
+  background: var(--vsu-accent-warning);
+  color: #1a1a2e;
+}
+
+.vsu-prescription-modal-btn {
+  background: #8b5cf6;
+  color: white;
+}
+
+.vsu-review-modal-btn {
+  background: #f59e0b;
+  color: #1a1a2e;
+}
+
+.vsu-bookagain-modal-btn {
+  background: var(--vsu-accent-primary);
+  color: white;
+}
+
+/* Scrollbar Styling */
+.vsu-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.vsu-modal-content::-webkit-scrollbar-track {
+  background: var(--vsu-bg-primary);
+  border-radius: 10px;
+}
+
+.vsu-modal-content::-webkit-scrollbar-thumb {
+  background: var(--vsu-accent-primary);
+  border-radius: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vsu-schedule-container {
+    padding: 1rem;
+  }
+
+  .vsu-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .vsu-card-body {
+    gap: 0.75rem;
+  }
+
+  .vsu-info-label {
+    min-width: 90px;
+  }
+
+  .vsu-detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .vsu-detail-label {
+    width: auto;
+  }
+
+  .vsu-modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .vsu-modal-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .vsu-tabs-container {
+    justify-content: center;
+  }
+
+  .vsu-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .vsu-card-footer {
+    justify-content: center;
+  }
+}
