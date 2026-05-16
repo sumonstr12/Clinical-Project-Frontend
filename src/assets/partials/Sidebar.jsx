@@ -8,7 +8,7 @@ const menuItems = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    path: '/',
+    path: '/doctor/doctor-dashboard',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -21,7 +21,7 @@ const menuItems = [
   {
     id: 'appointments',
     label: 'Appointments',
-    path: '/appointments',
+    path: '/doctor/appointments',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -34,7 +34,7 @@ const menuItems = [
   {
     id: 'patients',
     label: 'Patients',
-    path: '/patients',
+    path: '/doctor/patients',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -45,9 +45,9 @@ const menuItems = [
     ),
   },
   {
-    id: 'prescriptions',
-    label: 'Prescriptions',
-    path: '/prescriptions',
+    id: 'scheduleupdate',
+    label: 'Schedule Update',
+    path: '/doctor/schedule-update',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" />
@@ -57,7 +57,7 @@ const menuItems = [
   {
     id: 'reports',
     label: 'Reports',
-    path: '/reports',
+    path: '/doctor/reports',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" />

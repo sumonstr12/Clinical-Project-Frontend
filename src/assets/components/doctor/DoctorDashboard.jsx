@@ -584,7 +584,7 @@ const DoctorDashboard = () => (
       <Route path="/"              element={<DashboardHome />} />
       <Route path="/appointments"  element={<PlaceholderPage title="Appointments Page" />} />
       <Route path="/patients"      element={<PlaceholderPage title="Patients Page" />} />
-      <Route path="/prescriptions" element={<PlaceholderPage title="Prescriptions Page" />} />
+      <Route path="/schedule-update" element={<PlaceholderPage title="Schedule Update Page" />} />
       <Route path="/reports"       element={<PlaceholderPage title="Reports Page" />} />
       <Route path="/profile"       element={<PlaceholderPage title="Profile Page" />} />
     </Routes>

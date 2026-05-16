@@ -40,6 +40,7 @@ import ProfileViewPage from "./assets/pages/general_user/ProfileViewPage";
 // Doctors
 import DoctorLogin from "./assets/components/doctor/DoctorLogin";
 import DoctorDashboard from "./assets/components/doctor/DoctorDashboard";
+import DoctorScheduleaPage from "./assets/pages/doctor/DoctorScheduleaPage";
 // import DoctorSignup from "./assets/components/doctor/DoctorSignup";
 import DoctorSignUpPage from "./assets/pages/doctor/DoctorSignUpPage";
 
@@ -111,6 +112,7 @@ const App = () => {
           </Route>
 
           <Route path="doctor/doctor-dashboard" element={<DoctorDashboard />} />
+          <Route path="doctor/schedule-update" element={<DoctorScheduleaPage />} />
 
 
 
