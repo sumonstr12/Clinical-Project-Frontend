@@ -12,11 +12,14 @@ const Navbar = () => {
 
   const navigate = useNavigate();
 
+  const userRole = userData?.role?.toUpperCase();
 
-  // Check login status on component mount
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('userData');
+    const role = user ? JSON.parse(user).role : null;
+    console.log("Navbar - User role from localStorage:", role);
     const full_name = localStorage.getItem('f_n')
     
     if (token || user) {
@@ -192,10 +195,17 @@ const Navbar = () => {
                     <i className="fas fa-calendar-check"></i>
                     My Appointments
                   </button>
-                  <button onClick={() => navigate('/patient/settings')}>
-                    <i className="fas fa-cog"></i>
-                    Settings
-                  </button>
+                  {userRole === "PATIENT" ? (
+                    <button onClick={() => navigate('/patient/caregiver-requests')}>
+                      <i className="fas fa-user-nurse"></i>
+                      Caregiver Requests
+                    </button>
+                  ) : (
+                    <button onClick={() => navigate('/settings')}>
+                      <i className="fas fa-cog"></i>
+                      Settings
+                    </button>
+                  )}
                   <div className="dropdown-divider"></div>
                   <button onClick={handleLogout} className="logout-btn">
                     <i className="fas fa-sign-out-alt"></i>
@@ -255,9 +265,21 @@ const Navbar = () => {
               <button className="mobile-profile-btn" onClick={goToAppointment}>
                 <i className="fas fa-calendar-check"></i> My Appointments
               </button>
-              <button className="mobile-profile-btn" onClick={() => navigate('/patient/settings')}>
-                <i className="fas fa-cog"></i> Settings
-              </button>
+              {userRole === "PATIENT" ? (
+                <button
+                  className="mobile-profile-btn"
+                  onClick={() => navigate('/patient/caregiver-requests')}
+                >
+                  <i className="fas fa-user-nurse"></i> Caregiver Requests
+                </button>
+              ) : (
+                <button
+                  className="mobile-profile-btn"
+                  onClick={() => navigate('/settings')}
+                >
+                  <i className="fas fa-cog"></i> Settings
+                </button>
+              )}
               <button className="mobile-logout-btn" onClick={handleLogout}>
                 <i className="fas fa-sign-out-alt"></i> Logout
               </button>
