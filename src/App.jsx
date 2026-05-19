@@ -19,6 +19,7 @@ import FirstLoginPage from "./assets/pages/general_user/FirstLoginPage";
 // Caregiver
 import SignUpPageCaregiver from "./assets/pages/caregiver/SignUpPageCaregiver";
 import LogInPageCaregiver from "./assets/pages/caregiver/LogInPageCaregiver";
+import CaregiverRequestPage from "./assets/pages/caregiver/CaregiverRequestPage";
 
 // Admin
 import AdminDashboard from "./admin-assets/pages/AdminDashboard";
@@ -47,6 +48,8 @@ import DoctorSignUpPage from "./assets/pages/doctor/DoctorSignUpPage";
 
 // Appointments
 import AppoiontmentViewbyUserPage from "./assets/pages/appointmentpage/AppoiontmentViewbyUserPage";
+import ApproveRequestPage from "./assets/pages/caregiver/ApproveRequestPage";
+
 
 const App = () => {
   return (
@@ -111,6 +114,10 @@ const App = () => {
             <Route path="first-login" element={<FirstLoginPage />} />
 
             <Route path="user-profile" element={<ProfileViewPage />} />
+
+            <Route path="patient/caregiver-requests" element={<CaregiverRequestPage />} />
+
+            <Route path="patient-approval" element={<ApproveRequestPage />} />
               
 
           </Route>

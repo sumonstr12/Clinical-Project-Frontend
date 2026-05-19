@@ -66,6 +66,7 @@ function Divider() {
 export default function UserProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,6 +74,8 @@ export default function UserProfile() {
       try {
         const res = await myaxios.get("user-profile");
         if (res.data.status) setProfile(res.data.data);
+        setRole(res.data.role.toUpperCase());
+
       } catch (err) {
         console.error("Error fetching profile:", err);
       } finally {
@@ -99,7 +102,9 @@ export default function UserProfile() {
   }
 
   const user = profile.user ?? {};
-  const med = profile.medical_profile ?? {};  // null হলে {} হবে, error নেই
+  const userRole = role;
+  console.log("User role :", userRole);
+  const med = profile.medical_profile ?? {}; 
 
   return (
     <div style={{ minHeight: "100vh", background: "#030812", padding: "32px" }}>
@@ -129,7 +134,7 @@ export default function UserProfile() {
                 border: "1px solid rgba(99,102,241,0.25)",
                 borderRadius: 20, fontSize: 11, fontWeight: 500, padding: "3px 10px",
               }}>
-                Patient
+                {userRole}
               </span>
             </div>
             <p style={{ fontSize: 13, color: "#475569", margin: 0 }}>@{user.username}</p>
@@ -150,24 +155,33 @@ export default function UserProfile() {
           <Field label="Phone" value={user.phone} />
         </div>
 
-        <Divider />
+      
 
-        <SectionTitle>Medical Profile</SectionTitle>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 12,
-        }}>
-          <Field label="Cancer Type" value={med.cancer_type} />
-          <Field label="Treatment Type" value={med.cancer_treatment_type} />
-          <Field label="Medicine & Dose" value={med.medicine_and_dose} />
-          <Field label="Chemo History Count" value={med.chemo_history_count} />
-          <Field label="Gender" value={med.gender} />
-          <Field label="Date of Birth" value={med.date_of_birth} />
-          <Field label="Height (m)" value={med.height} />
-          <Field label="Weight (kg)" value={med.weight} />
-          <Field label="Region" value={med.region} />
-        </div>
+        {userRole === "PATIENT" && (
+          <>
+            <Divider />
+
+            <SectionTitle>Medical Profile</SectionTitle>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: 12,
+              }}
+            >
+              <Field label="Cancer Type" value={med.cancer_type} />
+              <Field label="Treatment Type" value={med.cancer_treatment_type} />
+              <Field label="Medicine & Dose" value={med.medicine_and_dose} />
+              <Field label="Chemo History Count" value={med.chemo_history_count} />
+              <Field label="Gender" value={med.gender} />
+              <Field label="Date of Birth" value={med.date_of_birth} />
+              <Field label="Height (m)" value={med.height} />
+              <Field label="Weight (kg)" value={med.weight} />
+              <Field label="Region" value={med.region} />
+            </div>
+          </>
+        )}
       </motion.div>
     </div>
   );

@@ -201,9 +201,9 @@ const Navbar = () => {
                       Caregiver Requests
                     </button>
                   ) : (
-                    <button onClick={() => navigate('/settings')}>
+                    <button onClick={() => navigate('/patient-approval')}>
                       <i className="fas fa-cog"></i>
-                      Settings
+                      Sent Requests(Approval)
                     </button>
                   )}
                   <div className="dropdown-divider"></div>
@@ -275,9 +275,9 @@ const Navbar = () => {
               ) : (
                 <button
                   className="mobile-profile-btn"
-                  onClick={() => navigate('/settings')}
+                  onClick={() => navigate('/patient-approval')}
                 >
-                  <i className="fas fa-cog"></i> Settings
+                  <i className="fas fa-cog"></i> Sent Requests(Approval)
                 </button>
               )}
               <button className="mobile-logout-btn" onClick={handleLogout}>
