@@ -98,6 +98,17 @@ const SignUp = () => {
       const email = formData.email
       if (response.data.status === true) {
         successToast(response.data.message);
+        console.log("User ID:", response.data.user_id);
+        const data = {
+          "caregiver_id" : response.data.user_id,
+          "patient_email" : formData.patient_email
+        }
+        console.log("Caregiver Request Data:", data);
+        const res = await myaxios.post("sent-approve-request", data );
+        if (res.data.status === true) {
+          successToast(res.data.message);
+          console.log(res.data);
+        }
         navigate('/caregiver/login');
       } else {
         errorToast(response.data.message || "Caregiver Registration Failed.");
