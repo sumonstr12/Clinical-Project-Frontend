@@ -76,10 +76,8 @@ export default function Topbar() {
 
     } finally {
 
-    
+      localStorage.removeItem("f_n");
       localStorage.removeItem("token");
-      localStorage.removeItem("userData");
-      localStorage.removeItem("rememberMe");
       localStorage.removeItem("role");
 
       

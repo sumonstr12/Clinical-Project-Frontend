@@ -6,11 +6,21 @@ import { errorToast, successToast } from '../../utilities/toast';
 import { useNavigate } from 'react-router';
 
 
+// for store data using redux-toolkit
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../utilities/userSlice';
+import { saveUser } from '../../utilities/localStroage';
+
+
+
+
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  const dispatch = useDispatch();
 
 
   const navigate = useNavigate();
@@ -19,7 +29,7 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     
     if (!formData.username || !formData.password) {
-      errorToast("⚠️ Please fill in all fields");
+      errorToast("Please fill in all fields");
       return;
     }
 
@@ -35,6 +45,8 @@ const Login = ({ onLogin }) => {
       
       if (response.data.status === true) {
         successToast(response.data.message || "Login successful!");
+
+        console.log("Data : ", response.data) 
         
         if (formData.rememberMe) {
           localStorage.setItem('rememberMe', 'true');
@@ -44,10 +56,17 @@ const Login = ({ onLogin }) => {
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
         }
-        localStorage.setItem('userData', JSON.stringify({
+
+        const userData = {
           full_name: response.data.full_name,
           role: response.data.role
-        }));
+        };
+
+        dispatch(setUser(userData));
+        saveUser(userData);
+
+
+        localStorage.setItem('userData', JSON.stringify(userData));
         
         
         if (response.data.role=="ADMIN"){

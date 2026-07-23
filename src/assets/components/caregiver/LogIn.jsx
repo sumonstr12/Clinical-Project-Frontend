@@ -59,17 +59,17 @@ const Login = () => {
         if (formData.rememberMe) {
           localStorage.setItem('rememberMe', 'true');
         }
-        
 
+        const userData = {
+          full_name: response.data.full_name,
+          role: response.data.role
+        };
+
+        console.log("User Data:", userData);
+        
+        localStorage.setItem('userData', JSON.stringify(userData));
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
-        }
-        if (response.data.user) {
-          localStorage.setItem('userData', JSON.stringify(response.data.user));
-        }
-
-        if (response.data.full_name){
-          localStorage.setItem('full_name', response.data.full_name)
         }
         
         setTimeout(() => {

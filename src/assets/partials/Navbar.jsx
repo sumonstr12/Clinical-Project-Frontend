@@ -104,9 +104,11 @@ const Navbar = () => {
       localStorage.removeItem("userData");
       localStorage.removeItem("rememberMe");
       localStorage.removeItem("role");
+      localStorage.removeItem("full_name");
 
       
       Cookies.remove("refresh_token");
+      Cookies.remove("email");
 
       
       setIsLoggedIn(false);
@@ -132,6 +134,13 @@ const Navbar = () => {
       return names[0][0].toUpperCase();
     }
     return 'U';
+  };
+
+  const getName = () => {
+    if (userData?.full_name) {
+      return userData.full_name;
+    }
+    return 'User';
   };
 
   return (

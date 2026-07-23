@@ -32,6 +32,8 @@ const AdminLogin = () => {
       
       if (response.data.status === true) {
         successToast(response.data.message || "Login successful!");
+
+        console.log('Login response:', response.data);
         
         localStorage.setItem('role', response.data.role || 'ADMIN');
         if (response.data.token) {

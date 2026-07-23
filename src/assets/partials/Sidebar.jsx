@@ -4,6 +4,11 @@ import myaxios from '../utilities/myaxios';
 import { successToast } from '../utilities/toast';
 import Cookies from 'js-cookie';
 
+// extract data using redux
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../utilities/userSlice';
+import { removeUser } from '../utilities/localStroage';
+
 const menuItems = [
   {
     id: 'dashboard',
@@ -75,6 +80,8 @@ const Sidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const profileRef = useRef(null);
   const [userData, setUserData] = useState(null);
+  const user = useSelector((state) => state.user.user)
+
 
   const getActiveTab = () => {
     const activeItem = menuItems.find((item) => item.path === location.pathname);
@@ -93,19 +100,21 @@ const Sidebar = () => {
   };
 
   const activeTab = getActiveTab();
+  const dispatch = useDispatch();
 
   const handleLogout = async () => {
 
     try {
 
-      const response =
-        await myaxios.post("user-logout");
+      const response = await myaxios.post("user-logout");
 
       if (response?.data?.status) {
         successToast(
           response.data.message ||
           "Logged out successfully!"
         );
+        dispatch(logout());
+        removeUser();
       }
 
     } catch (error) {
@@ -117,7 +126,6 @@ const Sidebar = () => {
     
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
-      localStorage.removeItem("rememberMe");
       localStorage.removeItem("role");
 
       
@@ -134,6 +142,9 @@ const Sidebar = () => {
     }
   };
 
+  const getName = () => {
+    return response ? response.data.full_name : "Annonomous.";
+  }
 
   return (
     <>
@@ -489,8 +500,8 @@ const Sidebar = () => {
               <div className="profile-avatar">DR</div>
 
               <div style={{ flex: 1, textAlign: 'left' }}>
-                <div className="profile-name">Dr. Sumon Roy</div>
-                <div className="profile-role">Cardiologist</div>
+                <div className="profile-name">{user?.full_name}</div>
+                <div className="profile-role">{user?.role}</div>
               </div>
 
               <svg

@@ -1,0 +1,3 @@
+
+Learning topic:
+1. uses ReduxToolkit : it helps to share data over every components.
