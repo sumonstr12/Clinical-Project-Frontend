@@ -225,6 +225,7 @@ export default function DoctorSignup() {
     date_of_birth: "",
     specialization: "",
     qualification: "",
+    license_number: "",
     license_count: "",
     img_url: null,
     cv: null,
@@ -308,8 +309,9 @@ export default function DoctorSignup() {
     }
     
     if (step === 3) {
-      if (!form.license_count) newErrors.license_count = "License number is required";
-      else if (isNaN(form.license_count)) newErrors.license_count = "License number must be a number";
+      if (!form.license_number) newErrors.license_number = "License number is required";
+      if (!form.license_count) newErrors.license_count = "License count is required";
+      else if (isNaN(form.license_count)) newErrors.license_count = "License count must be a number";
     }
     
     if (step === 4) {
@@ -324,6 +326,7 @@ export default function DoctorSignup() {
     setErrors({});
     
     const validationErrors = await validate();
+    console.log("Validation errors on next step:", validationErrors);
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -341,7 +344,7 @@ export default function DoctorSignup() {
     setErrors({});
     
     const validationErrors = await validate();
-    
+    console.log("Validation errors on submit:", validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return; 
@@ -603,7 +606,7 @@ export default function DoctorSignup() {
               </div>
               
               <div>
-                <Label required>Medical License Number</Label>
+                <Label required>Medical License Count</Label>
                 <Input
                   type="number"
                   name="license_count"
@@ -613,6 +616,18 @@ export default function DoctorSignup() {
                   error={errors.license_count}
                 />
                 <FieldError msg={errors.license_count} />
+              </div>
+              <div>
+                <Label required>Medical License Number</Label>
+                <Input
+                  type="text"
+                  name="license_number"
+                  value={form.license_number}
+                  onChange={handleChange}
+                  placeholder="e.g., 12345"
+                  error={errors.license_number}
+                />
+                <FieldError msg={errors.license_number} />
               </div>
             </div>
           )}
@@ -652,7 +667,8 @@ export default function DoctorSignup() {
                   <SummaryRow label="Phone" value={form.phone} />
                   <SummaryRow label="Specialization" value={form.specialization} />
                   <SummaryRow label="Qualification" value={form.qualification} />
-                  <SummaryRow label="License Number" value={form.license_count} />
+                  <SummaryRow label="License Number" value={form.license_number} />
+                  <SummaryRow label="License Count" value={form.license_count} />
                   <SummaryRow label="Gender" value={form.gender} />
                 </div>
               </div>
