@@ -49,6 +49,7 @@ import DoctorSignUpPage from "./assets/pages/doctor/DoctorSignUpPage";
 // Appointments
 import AppoiontmentViewbyUserPage from "./assets/pages/appointmentpage/AppoiontmentViewbyUserPage";
 import ApproveRequestPage from "./assets/pages/caregiver/ApproveRequestPage";
+import ApppointmentListPage from "./admin-assets/pages/Appointment/ApppointmentListPage";
 
 
 const App = () => {
@@ -70,6 +71,8 @@ const App = () => {
             <Route path="patients" element={<PatientListPage />} />
 
             <Route path="caregivers" element={<CaregiverListPage />} />
+
+            <Route path="appointments" element={<ApppointmentListPage />} />
               
             <Route index element={<NotFound />} />
 
