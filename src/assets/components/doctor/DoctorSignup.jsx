@@ -239,6 +239,9 @@ export default function DoctorSignup() {
   };
 
   const handleFile = (field) => (file) => {
+    if (file) {
+        console.log(`Selected file for ${field}:`, file.name, file.size, file.type);
+    }
     setForm((prev) => ({ ...prev, [field]: file }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
