@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router';
 import Sidebar from '../../partials/Sidebar';
-
+import myaxios from '../../utilities/myaxios';
+import { errorToast } from '../../utilities/toast';
 
 const globalStyle = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap');
@@ -63,6 +64,12 @@ const globalStyle = `
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    transition: border-color 0.18s, transform 0.15s;
+  }
+
+  .stat-card:hover {
+    border-color: rgba(59,124,244,0.2);
+    transform: translateY(-1px);
   }
 
   .stat-label {
@@ -78,6 +85,14 @@ const globalStyle = `
     font-size: 28px;
     font-weight: 700;
     color: #eaecf5;
+    line-height: 1;
+  }
+
+  .stat-value-loading {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #2e3450;
     line-height: 1;
   }
 
@@ -349,8 +364,22 @@ const globalStyle = `
 
   /* scrollable table wrapper */
   .table-scroll { overflow-x: auto; }
-`;
 
+  /* Loading shimmer effect */
+  .stat-skeleton {
+    background: linear-gradient(90deg, #0f1219 25%, #1a1f2e 50%, #0f1219 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 32px;
+    width: 60px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+`;
 
 const SearchBox = ({ value, onChange, placeholder = 'Search…' }) => (
   <div className="search-box">
@@ -368,55 +397,115 @@ const SectionTitle = ({ color = '#3b7cf4', children }) => (
   </h2>
 );
 
-
 const DashboardHome = () => {
-  const [searchAppointment, setSearchAppointment]   = useState('');
-  const [searchUpcoming, setSearchUpcoming]         = useState('');
-  const [searchTreatment, setSearchTreatment]       = useState('');
-  const [searchPatientList, setSearchPatientList]   = useState('');
+  const [searchAppointment, setSearchAppointment] = useState('');
+  const [searchUpcoming, setSearchUpcoming] = useState('');
+  const [searchTreatment, setSearchTreatment] = useState('');
+  const [searchPatientList, setSearchPatientList] = useState('');
+
+  // Stats state
+  const [stats, setStats] = useState({
+    total_patient: 0,
+    appointment_today: 0,
+    pending_request_count: 0,
+    total_recovered_patient: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [doctorName, setDoctorName] = useState('Doctor');
 
   const [appointments] = useState([
-    { id: 1, patientName: 'John Doe',       age: 45, time: '10:00 AM', date: '2024-01-20', type: 'Checkup',      status: 'pending' },
-    { id: 2, patientName: 'Jane Smith',     age: 32, time: '11:30 AM', date: '2024-01-20', type: 'Follow-up',    status: 'pending' },
-    { id: 3, patientName: 'Mike Johnson',   age: 58, time: '02:00 PM', date: '2024-01-20', type: 'Emergency',    status: 'pending' },
+    { id: 1, patientName: 'John Doe', age: 45, time: '10:00 AM', date: '2024-01-20', type: 'Checkup', status: 'pending' },
+    { id: 2, patientName: 'Jane Smith', age: 32, time: '11:30 AM', date: '2024-01-20', type: 'Follow-up', status: 'pending' },
+    { id: 3, patientName: 'Mike Johnson', age: 58, time: '02:00 PM', date: '2024-01-20', type: 'Emergency', status: 'pending' },
     { id: 4, patientName: 'Sarah Williams', age: 29, time: '03:30 PM', date: '2024-01-20', type: 'Consultation', status: 'pending' },
   ]);
 
   const [upcomingAppointments] = useState([
     { id: 1, patientName: 'Robert Brown', age: 52, time: '09:00 AM', date: '2024-01-21', type: 'Surgery Follow-up' },
-    { id: 2, patientName: 'Emily Davis',  age: 41, time: '10:30 AM', date: '2024-01-21', type: 'Regular Checkup'  },
-    { id: 3, patientName: 'David Wilson', age: 37, time: '01:00 PM', date: '2024-01-22', type: 'Consultation'      },
+    { id: 2, patientName: 'Emily Davis', age: 41, time: '10:30 AM', date: '2024-01-21', type: 'Regular Checkup' },
+    { id: 3, patientName: 'David Wilson', age: 37, time: '01:00 PM', date: '2024-01-22', type: 'Consultation' },
   ]);
 
   const [treatedPatients] = useState([
-    { id: 1, name: 'Alice Johnson', age: 34, treatment: 'Hypertension',   date: '2024-01-15', status: 'Recovering'      },
-    { id: 2, name: 'Bob Martin',    age: 28, treatment: 'Migraine',        date: '2024-01-14', status: 'Recovered'        },
-    { id: 3, name: 'Carol White',   age: 45, treatment: 'Diabetes Type 2', date: '2024-01-13', status: 'Under Treatment'  },
+    { id: 1, name: 'Alice Johnson', age: 34, treatment: 'Hypertension', date: '2024-01-15', status: 'Recovering' },
+    { id: 2, name: 'Bob Martin', age: 28, treatment: 'Migraine', date: '2024-01-14', status: 'Recovered' },
+    { id: 3, name: 'Carol White', age: 45, treatment: 'Diabetes Type 2', date: '2024-01-13', status: 'Under Treatment' },
   ]);
 
   const [patientList] = useState([
-    { id: 1, name: 'Emma Watson',   age: 29, lastVisit: '2024-01-10', condition: 'Fever',     nextAppointment: '2024-01-25' },
-    { id: 2, name: 'Oliver Chen',   age: 41, lastVisit: '2024-01-09', condition: 'Back Pain', nextAppointment: '2024-01-22' },
-    { id: 3, name: 'Sophia Kumar',  age: 35, lastVisit: '2024-01-08', condition: 'Allergy',   nextAppointment: '2024-01-28' },
+    { id: 1, name: 'Emma Watson', age: 29, lastVisit: '2024-01-10', condition: 'Fever', nextAppointment: '2024-01-25' },
+    { id: 2, name: 'Oliver Chen', age: 41, lastVisit: '2024-01-09', condition: 'Back Pain', nextAppointment: '2024-01-22' },
+    { id: 3, name: 'Sophia Kumar', age: 35, lastVisit: '2024-01-08', condition: 'Allergy', nextAppointment: '2024-01-28' },
   ]);
+
+  // Fetch dashboard stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        const response = await myaxios.get('doctor-dashboard/');
+        
+        if (response.data.status) {
+          setStats(response.data.data);
+          // Update doctor name from localStorage or response
+          const userData = JSON.parse(localStorage.getItem('user'));
+          setDoctorName(userData?.full_name || 'Doctor');
+        } else {
+          errorToast('Failed to load dashboard stats');
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+        errorToast('Failed to load dashboard data');
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const filter = (arr, key, q) => arr.filter((i) => i[key].toLowerCase().includes(q.toLowerCase()));
 
-  const filteredAppointments  = filter(appointments,         'patientName', searchAppointment);
-  const filteredUpcoming      = filter(upcomingAppointments, 'patientName', searchUpcoming);
-  const filteredTreated       = filter(treatedPatients,      'name',        searchTreatment);
-  const filteredPatientList   = filter(patientList,          'name',        searchPatientList);
+  const filteredAppointments = filter(appointments, 'patientName', searchAppointment);
+  const filteredUpcoming = filter(upcomingAppointments, 'patientName', searchUpcoming);
+  const filteredTreated = filter(treatedPatients, 'name', searchTreatment);
+  const filteredPatientList = filter(patientList, 'name', searchPatientList);
 
   const statusClass = (s) =>
-    s === 'Recovered'       ? 'status-chip status-recovered'  :
-    s === 'Recovering'      ? 'status-chip status-recovering' :
-                              'status-chip status-treatment';
+    s === 'Recovered' ? 'status-chip status-recovered' :
+      s === 'Recovering' ? 'status-chip status-recovering' :
+        'status-chip status-treatment';
 
-  const stats = [
-    { label: 'Total Patients',       value: '1,234', color: '#3b7cf4', bg: 'rgba(59,124,244,0.1)',  icon: <svg width="19" height="19" fill="none" stroke="#4d8aff" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
-    { label: 'Appointments Today',   value: '8',     color: '#1e9e6e', bg: 'rgba(30,158,110,0.1)', icon: <svg width="19" height="19" fill="none" stroke="#2ecf8e" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
-    { label: 'Pending Requests',     value: String(appointments.length), color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', icon: <svg width="19" height="19" fill="none" stroke="#a87bff" strokeWidth="1.7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
-    { label: 'Recovered Patients',   value: '342',   color: '#e8802a', bg: 'rgba(232,128,42,0.1)',  icon: <svg width="19" height="19" fill="none" stroke="#f0a050" strokeWidth="1.7" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> },
+  // Stats configuration with dynamic values
+  const statsConfig = [
+    {
+      label: 'Total Patients',
+      value: stats.total_patient,
+      color: '#3b7cf4',
+      bg: 'rgba(59,124,244,0.1)',
+      icon: <svg width="19" height="19" fill="none" stroke="#4d8aff" strokeWidth="1.7" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+    },
+    {
+      label: 'Appointments Today',
+      value: stats.appointment_today,
+      color: '#1e9e6e',
+      bg: 'rgba(30,158,110,0.1)',
+      icon: <svg width="19" height="19" fill="none" stroke="#2ecf8e" strokeWidth="1.7" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+    },
+    {
+      label: 'Pending Requests',
+      value: stats.pending_request_count,
+      color: '#8b5cf6',
+      bg: 'rgba(139,92,246,0.1)',
+      icon: <svg width="19" height="19" fill="none" stroke="#a87bff" strokeWidth="1.7" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+    },
+    {
+      label: 'Recovered Patients',
+      value: stats.total_recovered_patient,
+      color: '#e8802a',
+      bg: 'rgba(232,128,42,0.1)',
+      icon: <svg width="19" height="19" fill="none" stroke="#f0a050" strokeWidth="1.7" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+    },
   ];
 
   return (
@@ -425,16 +514,20 @@ const DashboardHome = () => {
 
       <div className="dash-inner">
         <div className="dash-header">
-          <h1>Welcome back, Dr. Sumon</h1>
+          <h1>Welcome back, Dr. {doctorName}</h1>
           <p>Here's your medical practice overview for today</p>
         </div>
 
         <div className="stats-grid">
-          {stats.map((s) => (
+          {statsConfig.map((s) => (
             <div className="stat-card" key={s.label}>
               <div>
                 <div className="stat-label" style={{ color: s.color }}>{s.label}</div>
-                <div className="stat-value">{s.value}</div>
+                {statsLoading ? (
+                  <div className="stat-skeleton"></div>
+                ) : (
+                  <div className="stat-value">{s.value}</div>
+                )}
               </div>
               <div className="stat-icon" style={{ background: s.bg }}>{s.icon}</div>
             </div>
@@ -455,11 +548,11 @@ const DashboardHome = () => {
                   <div className="req-patient-name">{apt.patientName}</div>
                   <div className="req-meta">
                     <span className="req-badge">
-                      <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                       {apt.time}
                     </span>
                     <span className="req-badge">
-                      <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                       {apt.date}
                     </span>
                     <span className="req-badge">Age {apt.age}</span>
@@ -514,7 +607,6 @@ const DashboardHome = () => {
           }
         </div>
 
-       
         <div className="two-col">
           <div className="section" style={{ margin: 0 }}>
             <div className="section-head">
@@ -576,17 +668,16 @@ const PlaceholderPage = ({ title }) => (
   </div>
 );
 
-
 const DoctorDashboard = () => (
   <div style={{ display: 'flex', height: '100vh', background: '#0a0c11', overflow: 'hidden' }}>
     <Sidebar />
     <Routes>
-      <Route path="/"              element={<DashboardHome />} />
-      <Route path="/appointments"  element={<PlaceholderPage title="Appointments Page" />} />
-      <Route path="/patients"      element={<PlaceholderPage title="Patients Page" />} />
+      <Route path="/" element={<DashboardHome />} />
+      <Route path="/appointments" element={<PlaceholderPage title="Appointments Page" />} />
+      <Route path="/patients" element={<PlaceholderPage title="Patients Page" />} />
       <Route path="/schedule-update" element={<PlaceholderPage title="Schedule Update Page" />} />
-      <Route path="/reports"       element={<PlaceholderPage title="Reports Page" />} />
-      <Route path="/profile"       element={<PlaceholderPage title="Profile Page" />} />
+      <Route path="/reports" element={<PlaceholderPage title="Reports Page" />} />
+      <Route path="/profile" element={<PlaceholderPage title="Profile Page" />} />
     </Routes>
   </div>
 );

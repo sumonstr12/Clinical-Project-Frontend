@@ -79,8 +79,10 @@ const Sidebar = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const profileRef = useRef(null);
-  const [userData, setUserData] = useState(null);
   const user = useSelector((state) => state.user.user)
+
+  const userData = JSON.parse(localStorage.getItem('user')) || null;
+
 
 
   const getActiveTab = () => {
@@ -500,8 +502,8 @@ const Sidebar = () => {
               <div className="profile-avatar">DR</div>
 
               <div style={{ flex: 1, textAlign: 'left' }}>
-                <div className="profile-name">{user?.full_name}</div>
-                <div className="profile-role">{user?.role}</div>
+                <div className="profile-name">Dr. {userData?.full_name}</div>
+                <div className="profile-role">{userData?.role}</div>
               </div>
 
               <svg
