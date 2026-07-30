@@ -50,6 +50,9 @@ import DoctorSignUpPage from "./assets/pages/doctor/DoctorSignUpPage";
 import AppoiontmentViewbyUserPage from "./assets/pages/appointmentpage/AppoiontmentViewbyUserPage";
 import ApproveRequestPage from "./assets/pages/caregiver/ApproveRequestPage";
 import ApppointmentListPage from "./admin-assets/pages/Appointment/ApppointmentListPage";
+import DoctorRoute from "./Route/DoctorRoute";
+import DoctorAppointmentList from "./assets/pages/doctor/DoctorAppointmentList";
+import PatientListViewByDoctorPage from "./assets/pages/doctor/PatientListViewByDoctorPage";
 
 
 const App = () => {
@@ -125,8 +128,8 @@ const App = () => {
 
           </Route>
 
-          <Route path="doctor/doctor-dashboard" element={<DoctorDashboard />} />
-          <Route path="doctor/schedule-update" element={<DoctorScheduleaPage />} />
+          
+          
 
           <Route path="users/appointments" element={<AppoiontmentViewbyUserPage />} />
 
@@ -137,6 +140,13 @@ const App = () => {
           <Route path="caregiver/login" element={<LogInPageCaregiver />} />
             
 
+        </Route>
+
+        <Route element={<DoctorRoute />}>
+            <Route path="doctor/doctor-dashboard" element={<DoctorDashboard />} />
+            <Route path="doctor/schedule-update" element={<DoctorScheduleaPage />} />
+            <Route path="doctor/appointments" element={<DoctorAppointmentList />} />
+            <Route path="doctor/patients" element={<PatientListViewByDoctorPage />} />
         </Route>
 
 

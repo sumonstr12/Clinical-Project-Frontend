@@ -4,6 +4,7 @@ import "../../css/doctor/doctor-login.css";
 import myaxios from '../../utilities/myaxios';
 import { errorToast, successToast } from '../../utilities/toast';
 import { useNavigate } from 'react-router';
+import alreadyLoggedIn from '../../utilities/alreadyLoggedIn';
 
 
 // for store data using redux-toolkit
@@ -19,6 +20,8 @@ const Login = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  alreadyLoggedIn("You are already Logged in!")
   
   const dispatch = useDispatch();
 

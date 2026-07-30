@@ -54,6 +54,8 @@ const Login = () => {
       
       if (response.data.status === true) {
         successToast(response.data.message || "Login successful!");
+
+        console.log('role:', response.data.role);
         
         // Handle remember me functionality (store token, etc.)
         if (formData.rememberMe) {
@@ -70,22 +72,19 @@ const Login = () => {
         }));
         
         
-        if (response.data.role=="ADMIN"){
-
-          setTimeout(() => {
-            navigate('/admin/admin-dashboard'); 
-          }, 1500);
-        }
-
-        else if (response.data.is_first_login){
-            setTimeout(() => {
-              navigate('/first-login'); 
-            }, 1500);
-        }else{
-          setTimeout(() => {
-            navigate('/'); 
-          }, 1500);
-        }
+        setTimeout(() => {
+          if (response.data.role === "HEALTHCARE") {
+            navigate('/doctor/doctor-dashboard');
+          }else if (response.data.is_first_login) {
+            if (response.data.role === "PATIENT") {
+              navigate('/first-login');
+            }else {
+              navigate('/');
+            }
+          } else {
+            navigate('/');
+          }
+        }, 1500);
         
       } else {
         errorToast(response.data.message || "Login Failed");

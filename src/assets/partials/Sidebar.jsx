@@ -81,7 +81,7 @@ const Sidebar = () => {
   const profileRef = useRef(null);
   const user = useSelector((state) => state.user.user)
 
-  const userData = JSON.parse(localStorage.getItem('user')) || null;
+  const userData = JSON.parse(localStorage.getItem('userData')) || null;
 
 
 
@@ -115,8 +115,6 @@ const Sidebar = () => {
           response.data.message ||
           "Logged out successfully!"
         );
-        dispatch(logout());
-        removeUser();
       }
 
     } catch (error) {
@@ -125,6 +123,8 @@ const Sidebar = () => {
 
     } finally {
 
+      dispatch(logout());
+      removeUser();
     
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
@@ -134,7 +134,6 @@ const Sidebar = () => {
       Cookies.remove("refresh_token");
 
       
-      setUserData(null);
       setShowProfileMenu(false);
       setMobileOpen(false);
 

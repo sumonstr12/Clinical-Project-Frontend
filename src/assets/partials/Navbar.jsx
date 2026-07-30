@@ -53,6 +53,11 @@ const Navbar = () => {
     setMobileOpen(false);
   };
 
+  const goToUserNotifications = () => {
+    navigate('/users/notifications');
+    setMobileOpen(false);
+  }
+
   const goToUserAppointments = () => {
     navigate('/users/appointments');
     setMobileOpen(false);
@@ -203,6 +208,10 @@ const Navbar = () => {
                   <button onClick={goToUserAppointments}>
                     <i className="fas fa-calendar-check"></i>
                     My Appointments
+                  </button>
+                  <button onClick={goToUserNotifications}>
+                    <i className="fas fa-bell"></i>
+                    Notifications
                   </button>
                   {userRole === "PATIENT" ? (
                     <button onClick={() => navigate('/patient/caregiver-requests')}>

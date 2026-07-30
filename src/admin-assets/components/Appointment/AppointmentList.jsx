@@ -183,6 +183,12 @@ function AppointmentProfileModal({ appointment, isOpen, onClose }) {
                 <InfoRow icon={CalendarIcon} label="Date" value={appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleDateString() : "N/A"} color="blue" />
                 <InfoRow icon={ClockIcon} label="Time" value={appointment.slot} color="orange" />
                 <InfoRow icon={CalendarIcon} label="Created At" value={appointment.created_at ? new Date(appointment.created_at).toLocaleString() : "N/A"} color="purple" />
+                <InfoRow 
+                  icon={User} 
+                  label={`Appointment By${appointment.appointment_by_role ? ` (${appointment.appointment_by_role})` : ''}`}
+                  value={appointment.appointment_by || "N/A"} 
+                  color="blue" 
+                />
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import myaxios from "../../assets/utilities/myaxios"; // তোমার axios instance
+import myaxios from "../../assets/utilities/myaxios"; 
 
 const specialties = [
   "All Specialties",

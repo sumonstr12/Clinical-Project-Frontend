@@ -317,14 +317,15 @@ const DoctorSchedule = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="sc-slot-actions">
-                      <button 
-                        className="sc-btn-icon sc-btn-delete"
+                    <div className="flex items-center">
+                      <button
                         onClick={() => handleDeleteSlot(slot.time_slot, slot.time_slot)}
-                        title="Remove from schedule"
                         disabled={loading}
+                        title="Remove from schedule"
+                        className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-all duration-200 hover:bg-red-100 hover:border-red-300 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <i className="fas fa-trash-alt"></i>
+                        <span>Delete</span>
                       </button>
                     </div>
                   </div>
