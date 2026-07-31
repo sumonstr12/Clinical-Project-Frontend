@@ -19,6 +19,7 @@ const FirstLogIn = () => {
     cancer_treatment_type: "",
     medicine_and_dose: "",
     chemo_history_count: "",
+    blood_group: "",
     height: "",
     gender: "",
     weight: "",
@@ -40,7 +41,7 @@ const FirstLogIn = () => {
     const requiredFields = [
       'cancer_type', 'cancer_treatment_type', 'medicine_and_dose', 
       'chemo_history_count', 'height', 'gender', 'weight', 
-      'date_of_birth', 'region'
+      'date_of_birth', 'region', 'blood_group'
     ];
     
     for (let field of requiredFields) {
@@ -94,6 +95,17 @@ const FirstLogIn = () => {
   const regions = [
     "Dhaka", "Chittagong", "Rajshahi", "Khulna", "Barisal", 
     "Sylhet", "Rangpur", "Mymensingh"
+  ];
+
+  const bloodGroups = [
+    { value: 'a_p', label: 'A+' },
+    { value: 'b_p', label: 'B+' },
+    { value: 'o_p', label: 'O+' },
+    { value: 'ab_p', label: 'AB+' },
+    { value: 'a_n', label: 'A-' },
+    { value: 'b_n', label: 'B-' },
+    { value: 'o_n', label: 'O-' },
+    { value: 'ab_n', label: 'AB-' },
   ];
 
   return (
@@ -376,6 +388,29 @@ const FirstLogIn = () => {
                     <option value="">Select region</option>
                     {regions.map(region => (
                       <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="blood_group"> {/* Changed from blood_type */}
+                    <i className="fas fa-tint"></i>
+                    Blood Group <span className="required">*</span>
+                  </label>
+                  <select
+                    id="blood_group" // Changed from blood_type
+                    name="blood_group" // Changed from blood_type
+                    value={formData.blood_group} // Changed from blood_type
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select blood group</option>
+                    {bloodGroups.map(group => (
+                      <option key={group.value} value={group.value}>
+                        {group.label}
+                      </option>
                     ))}
                   </select>
                 </div>

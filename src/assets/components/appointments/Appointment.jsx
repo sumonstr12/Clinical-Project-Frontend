@@ -63,8 +63,61 @@ const Appointment = () => {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsFetched, setSlotsFetched] = useState(false);
 
+  // New states for caregiver patient selection
+  const [userRole, setUserRole] = useState(null);
+  const [relatedPatients, setRelatedPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patientSearchTerm, setPatientSearchTerm] = useState("");
+  const [loadingPatients, setLoadingPatients] = useState(false);
+
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('userData');
+    console.log("Retrieved user data from localStorage:", userData);
+    if (userData) {
+      try {
+        const parsedData = JSON.parse(userData);
+        setUserRole(parsedData.role);
+        
+        // If patient, auto-fill details
+        if (parsedData.role === 'PATIENT') {
+          setAppointmentDetails(prev => ({
+            ...prev,
+            patientName: parsedData.full_name || '',
+            patientAge: parsedData.age || '',
+            patientContact: parsedData.phone || ''
+          }));
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
+
+  // Fetch related patients if caregiver
+  useEffect(() => {
+    if (userRole === 'CAREGIVER') {
+      fetchRelatedPatients();
+    }
+  }, [userRole]);
+
+  const fetchRelatedPatients = async () => {
+    setLoadingPatients(true);
+    try {
+      const response = await myaxios.get("related-patient-list/");
+      if (response.data.status) {
+        setRelatedPatients(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching related patients:", error);
+      earlierUpdateAlt("Failed to load patients list");
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
 
   const fetchDoctors = async () => {
     setLoadingDoctors(true);
@@ -139,7 +192,6 @@ const Appointment = () => {
     } else if (currentStep !== 2){
       setAvailableSlots([]);
       setSlotsFetched(false);
-      // setSelectedSlot(null);
     }
   }, [currentStep, selectedDoctor, selectedDate, year, month]);
 
@@ -216,6 +268,13 @@ const Appointment = () => {
 };
   const calDates = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
 
+  // Filter patients based on search
+  const filteredPatients = relatedPatients.filter(patient =>
+    patient.full_name.toLowerCase().includes(patientSearchTerm.toLowerCase()) ||
+    patient.email?.toLowerCase().includes(patientSearchTerm.toLowerCase()) ||
+    patient.phone?.includes(patientSearchTerm)
+  );
+
   const handleNextStep = () => {
     if (currentStep === 1 && !selectedDoctor) {
       earlierUpdateAlt("Please select a doctor to continue");
@@ -225,9 +284,16 @@ const Appointment = () => {
       earlierUpdateAlt("Please select date and time slot to continue");
       return;
     }
-    if (currentStep === 3 && (!appointmentDetails.symptoms || !appointmentDetails.patientName)) {
-      earlierUpdateAlt("Please provide all required details");
-      return;
+    if (currentStep === 3) {
+      // Check if patient is selected (for caregiver) or patient details are filled
+      if (userRole === 'CAREGIVER' && !selectedPatient) {
+        earlierUpdateAlt("Please select a patient to continue");
+        return;
+      }
+      if (!appointmentDetails.symptoms) {
+        earlierUpdateAlt("Please provide symptoms description");
+        return;
+      }
     }
     setCurrentStep(currentStep + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -242,6 +308,16 @@ const Appointment = () => {
     setAppointmentDetails({
       ...appointmentDetails,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const handlePatientSelect = (patient) => {
+    setSelectedPatient(patient);
+    setAppointmentDetails({
+      ...appointmentDetails,
+      patientName: patient.full_name,
+      patientAge: patient.age || '',
+      patientContact: patient.phone || ''
     });
   };
 
@@ -265,6 +341,11 @@ const Appointment = () => {
         appointment_date: `${year}-${String(month + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`,
       };
 
+      // Add patient_id if caregiver
+      if (userRole === 'CAREGIVER' && selectedPatient) {
+        bookingData.patient_id = selectedPatient.id;
+      }
+
       console.log("Booking Data:", bookingData);
 
       const response = await myaxios.post("appointment/create/", bookingData);
@@ -278,6 +359,7 @@ const Appointment = () => {
         setSelectedSlot(null);
         setAvailableSlots([]);
         setSlotsFetched(false);
+        setSelectedPatient(null);
 
         setAppointmentDetails({
           symptoms: "",
@@ -286,6 +368,11 @@ const Appointment = () => {
           patientAge: "",
           patientContact: "",
         });
+
+        // Reset patient details if caregiver
+        if (userRole === 'CAREGIVER') {
+          // Keep the form empty for next booking
+        }
 
       } else {
         earlierUpdateAlt(
@@ -307,6 +394,9 @@ const Appointment = () => {
       }
     }
   };
+
+  console.log("Current userRole:", userRole);
+  console.log("Is CAREGIVER?", userRole === 'CAREGIVER');
 
   return (
     <section className="ap-section-full" id="appointment" aria-label="Book Appointment">
@@ -581,41 +671,117 @@ const Appointment = () => {
 
             {currentStep === 3 && (
               <div className="ap-details-form">
+                {userRole === 'CAREGIVER' && (
+                  <div className="ap-patient-selection">
+                    <div className="ap-form-group">
+                      <label>Search Patient *</label>
+                      <div className="ap-search-box" style={{ marginBottom: '0.5rem' }}>
+                        <i className="fas fa-search"></i>
+                        <input
+                          type="text"
+                          placeholder="Search by name, email or phone..."
+                          value={patientSearchTerm}
+                          onChange={(e) => setPatientSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      {loadingPatients ? (
+                        <div className="ap-loading-patients">
+                          <i className="fas fa-spinner fa-spin"></i>
+                          <p>Loading patients...</p>
+                        </div>
+                      ) : (
+                        <div className="ap-patients-list">
+                          {filteredPatients.map(patient => (
+                            <div
+                              key={patient.id}
+                              className={`ap-patient-item ${selectedPatient?.id === patient.id ? 'ap-selected' : ''}`}
+                              onClick={() => handlePatientSelect(patient)}
+                            >
+                              <div className="ap-patient-info">
+                                <h5>{patient.full_name}</h5>
+                                <p>{patient.email}</p>
+                                <p>{patient.phone}</p>
+                                <p className="ap-patient-age">Age: {patient.age || 'N/A'}</p>
+                              </div>
+                              {selectedPatient?.id === patient.id && (
+                                <div className="ap-selected-badge">
+                                  <i className="fas fa-check-circle"></i>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {filteredPatients.length === 0 && (
+                            <div className="ap-no-patients">
+                              <p>No patients found matching your search.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="ap-form-group">
-                  <label>Patient Full Name *</label>
+                  <label>Patient Full Name {userRole === 'PATIENT' ? '*' : (userRole === 'CAREGIVER' ? '' : '*')}</label>
                   <input
                     type="text"
                     name="patientName"
                     value={appointmentDetails.patientName}
                     onChange={handleDetailsChange}
                     placeholder="Enter your full name"
-                    required
+                    required={userRole !== 'CAREGIVER'}
+                    readOnly={userRole === 'PATIENT' || userRole === 'CAREGIVER'}
+                    className={userRole === 'PATIENT' || userRole === 'CAREGIVER' ? 'ap-readonly' : ''}
                   />
+                  {userRole === 'PATIENT' && (
+                    <small className="ap-readonly-note">Auto-filled from your profile</small>
+                  )}
+                  {userRole === 'CAREGIVER' && selectedPatient && (
+                    <small className="ap-readonly-note">Auto-filled from selected patient</small>
+                  )}
                 </div>
+                
                 <div className="ap-form-row">
                   <div className="ap-form-group">
-                    <label>Age *</label>
+                    <label>Age {userRole === 'PATIENT' ? '*' : (userRole === 'CAREGIVER' ? '' : '*')}</label>
                     <input
                       type="number"
                       name="patientAge"
                       value={appointmentDetails.patientAge}
                       onChange={handleDetailsChange}
                       placeholder="Age"
-                      required
+                      required={userRole !== 'CAREGIVER'}
+                      readOnly={userRole === 'PATIENT' || userRole === 'CAREGIVER'}
+                      className={userRole === 'PATIENT' || userRole === 'CAREGIVER' ? 'ap-readonly' : ''}
                     />
+                    {userRole === 'PATIENT' && (
+                      <small className="ap-readonly-note">Auto-filled from your profile</small>
+                    )}
+                    {userRole === 'CAREGIVER' && selectedPatient && (
+                      <small className="ap-readonly-note">Auto-filled from selected patient</small>
+                    )}
                   </div>
                   <div className="ap-form-group">
-                    <label>Contact Number *</label>
+                    <label>Contact Number {userRole === 'PATIENT' ? '*' : (userRole === 'CAREGIVER' ? '' : '*')}</label>
                     <input
                       type="tel"
                       name="patientContact"
                       value={appointmentDetails.patientContact}
                       onChange={handleDetailsChange}
                       placeholder="Phone number"
-                      required
+                      required={userRole !== 'CAREGIVER'}
+                      readOnly={userRole === 'PATIENT' || userRole === 'CAREGIVER'}
+                      className={userRole === 'PATIENT' || userRole === 'CAREGIVER' ? 'ap-readonly' : ''}
                     />
+                    {userRole === 'PATIENT' && (
+                      <small className="ap-readonly-note">Auto-filled from your profile</small>
+                    )}
+                    {userRole === 'CAREGIVER' && selectedPatient && (
+                      <small className="ap-readonly-note">Auto-filled from selected patient</small>
+                    )}
                   </div>
                 </div>
+                
                 <div className="ap-form-group">
                   <label>Symptoms / Reason for Visit *</label>
                   <textarea
@@ -639,7 +805,6 @@ const Appointment = () => {
                 </div>
               </div>
             )}
-
             {currentStep === 4 && (
               <div className="ap-confirmation-card">
                 <div className="ap-confirmation-header">

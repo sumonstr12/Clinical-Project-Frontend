@@ -56,6 +56,26 @@ const CaregiverRequest = () => {
     }
   };
 
+  const handleDelete = async (caregiverId) => {
+    try {
+      console.log("Deleting Caregiver Request with ID:", caregiverId);
+      const response = await myaxios.post(`caregiver-reject`, {
+        caregiver_id: caregiverId
+      });
+
+      successToast(response.data.message || 'Caregiver Request Deleted');
+
+      fetchCaregiverRequests();
+    } catch (error) {
+      console.log(error);
+
+      errorToast(
+        error?.response?.data?.message ||
+        'Failed to Delete Caregiver Request'
+      );
+    }
+  }
+
   const pendingCaregivers = caregivers.filter((c) => c.status === 'pending');
   const verifiedCaregivers = caregivers.filter((c) => c.status === 'active');
 
@@ -181,10 +201,6 @@ const CaregiverRequest = () => {
                 <h2 className="cr-modal-title">
                   Caregiver Details
                 </h2>
-
-                <p className="cr-modal-id">
-                  ID: #{selectedCaregiver.id}
-                </p>
               </div>
             </div>
 
