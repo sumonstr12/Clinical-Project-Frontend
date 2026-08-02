@@ -16,19 +16,18 @@ const AppointmentViewbyUser = () => {
         setLoading(true);
         const response = await myaxios.get('/appointment/view/users/');
         if (response.data && response.data.status === true) {
-
-          
-          // Process appointments to add computed fields
           const processedData = response.data.data.map(appointment => ({
             ...appointment,
             computedStatus: computeAppointmentStatus(appointment)
           }));
-          // Inside fetchAppointments, after setting processedData:
+          
           console.log('Processed appointments:', processedData.map(apt => ({
             id: apt.id,
             date: apt.appointment_date,
-            backendStatus: apt.status
+            backendStatus: apt.status,
+            computedStatus: apt.computedStatus
           })));
+          
           setAppointments(processedData);
         } else {
           setError('Failed to load appointments');
@@ -44,25 +43,45 @@ const AppointmentViewbyUser = () => {
     fetchAppointments();
   }, []);
 
-  
+  // Single consistent function to check if appointment is missed
+  const isAppointmentMissed = (appointment) => {
+    if (!appointment.appointment_date || !appointment.slot) return false;
+
+    const appointmentDateTime = new Date(appointment.appointment_date);
+    const [hours, minutes] = appointment.slot.split(':');
+    appointmentDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
+    
+    const now = new Date();
+    const timeDiff = appointmentDateTime - now;
+    const minutesDiff = timeDiff / (1000 * 60);
+    
+    // Consider missed if appointment time has passed by more than 30 minutes
+    return minutesDiff < -30;
+  };
+
   const computeAppointmentStatus = (appointment) => {
     if (!appointment.status) return 'pending';
 
     const status = appointment.status.toUpperCase();
 
-    switch (status) {
-      case 'COMPLETED':
-        return 'completed';
+    if (status === 'COMPLETED') return 'completed';
+    if (status === 'CANCELLED') return 'cancelled';
 
-      case 'CANCELLED':
-        return 'cancelled';
-
-      case 'PENDING':
-        return 'pending';
-
-      default:
-        return 'pending';
+    if (status === 'APPROVED') {
+      if (isAppointmentMissed(appointment)) {
+        return 'missed';
+      }
+      return 'upcoming';
     }
+
+    if (status === 'PENDING') {
+      if (isAppointmentMissed(appointment)) {
+        return 'missed';
+      }
+      return 'pending';
+    }
+
+    return 'pending';
   };
 
   const formatDate = (dateString) => {
@@ -97,20 +116,18 @@ const AppointmentViewbyUser = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'confirmed':
       case 'upcoming':
-        return { text: 'Confirmed', class: 'vsu-status-confirmed' };
+        return { text: 'Approved', class: 'vsu-status-confirmed' };
       case 'completed':
         return { text: 'Completed', class: 'vsu-status-completed' };
       case 'cancelled':
-      case 'canceled':
-        return { text: 'Canceled', class: 'vsu-status-canceled' };
+        return { text: 'Cancelled', class: 'vsu-status-canceled' };
       case 'missed':
         return { text: 'Missed', class: 'vsu-status-missed' };
       case 'pending':
         return { text: 'Pending', class: 'vsu-status-pending' };
       default:
-        return { text: 'Confirmed', class: 'vsu-status-confirmed' };
+        return { text: 'Pending', class: 'vsu-status-pending' };
     }
   };
 
@@ -122,38 +139,43 @@ const AppointmentViewbyUser = () => {
   };
 
   const isUpcoming = (appointment) => {
-    return appointment.computedStatus === 'pending';
+    return appointment.computedStatus === 'upcoming';
   };
 
   const isCompleted = (appointment) => {
     return appointment.computedStatus === 'completed';
   };
 
-  const isCanceled = (appointment) => {
+  const isCancelled = (appointment) => {
     return appointment.computedStatus === 'cancelled';
   };
 
+  const isPending = (appointment) => {
+    return appointment.computedStatus === 'pending';
+  };
+
   const isMissed = (appointment) => {
-    return false; // optional remove or keep static
+    return appointment.computedStatus === 'missed';
   };
 
   const getFilteredAppointments = () => {
     switch (activeTab) {
       case 'upcoming':
-        return appointments.filter(apt => isUpcoming(apt));
+        return appointments.filter(apt => isUpcoming(apt) || isPending(apt));
       case 'completed':
         return appointments.filter(apt => isCompleted(apt));
       case 'canceled':
-        return appointments.filter(apt => isCanceled(apt));
+        return appointments.filter(apt => isCancelled(apt));
       case 'missed':
         return appointments.filter(apt => isMissed(apt));
       default:
-        return appointments.filter(apt => isUpcoming(apt));
+        return appointments.filter(apt => isUpcoming(apt) || isPending(apt));
     }
   };
 
-  // Check if join button should be active (10 minutes before appointment)
   const isJoinButtonActive = (appointment) => {
+    if (!appointment.appointment_date || !appointment.slot) return false;
+    
     const appointmentDateTime = new Date(appointment.appointment_date);
     const [hours, minutes] = appointment.slot.split(':');
     appointmentDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
@@ -162,26 +184,22 @@ const AppointmentViewbyUser = () => {
     const timeDiff = appointmentDateTime - now;
     const minutesDiff = timeDiff / (1000 * 60);
     
-    // Active if within 10 minutes before appointment or during appointment time
-    return minutesDiff <= 10 && minutesDiff > -60;
+    // Active if within 10 minutes before appointment or during appointment time (up to 30 minutes after)
+    return minutesDiff <= 10 && minutesDiff > -30;
   };
 
-  // Handle Join Video Call
   const handleJoinCall = (appointment) => {
     const meetingLink = appointment.meeting_link || 'https://meet.google.com/example';
     window.open(meetingLink, '_blank');
   };
 
-  // Handle Cancel Appointment
   const handleCancelAppointment = async (appointment) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {
       try {
-        // Call your cancel API endpoint
         await myaxios.put(`/appointment/cancel/${appointment.id}/`);
-        // Update local state
         setAppointments(prev => prev.map(apt => 
           apt.id === appointment.id 
-            ? { ...apt, computedStatus: 'canceled', status: 'canceled' }
+            ? { ...apt, computedStatus: 'cancelled', status: 'CANCELLED' }
             : apt
         ));
         alert('Appointment canceled successfully');
@@ -192,8 +210,6 @@ const AppointmentViewbyUser = () => {
     }
   };
 
-
-  // Handle Download Prescription
   const handleDownloadPrescription = (appointment) => {
     if (appointment.prescription_url) {
       window.open(appointment.prescription_url, '_blank');
@@ -202,17 +218,14 @@ const AppointmentViewbyUser = () => {
     }
   };
 
-  // Handle Give Review
   const handleGiveReview = (appointment) => {
     alert(`Give review for Dr. ${appointment.provider?.user?.full_name}`);
   };
 
-  // Handle Book Again
   const handleBookAgain = (appointment) => {
     alert(`Book again with Dr. ${appointment.provider?.user?.full_name}`);
   };
 
-  // Handle View Details (open modal)
   const handleViewDetails = (appointment) => {
     setSelectedAppointment(appointment);
     setShowModal(true);
@@ -249,51 +262,48 @@ const AppointmentViewbyUser = () => {
 
   const filteredAppointments = getFilteredAppointments();
   const tabCounts = {
-    upcoming: appointments.filter(apt => isUpcoming(apt)).length,
+    upcoming: appointments.filter(apt => isUpcoming(apt) || isPending(apt)).length,
     completed: appointments.filter(apt => isCompleted(apt)).length,
-    canceled: appointments.filter(apt => isCanceled(apt)).length,
+    canceled: appointments.filter(apt => isCancelled(apt)).length,
     missed: appointments.filter(apt => isMissed(apt)).length,
   };
 
   return (
     <div className="vsu-schedule-container vsu-dark-professional">
-      {/* Static Header - Data Change is Not Allowed */}
       <div className="vsu-static-header">
-        <h1>📋 My Appointments</h1>
+        <h1>My Appointments</h1>
         <div className="vsu-data-protection-notice">
-          ⚠️ This data is cannot be changed manually. You can cancel the appointment. For any changes, please contact support team.
+          This data cannot be changed manually. You can cancel the appointment. For any changes, please contact support team.
         </div>
       </div>
 
-      {/* Tabs Section */}
       <div className="vsu-tabs-container">
         <button 
           className={`vsu-tab ${activeTab === 'upcoming' ? 'vsu-tab-active' : ''}`}
           onClick={() => setActiveTab('upcoming')}
         >
-          📅 Upcoming <span className="vsu-tab-count">{tabCounts.upcoming}</span>
+          Upcoming <span className="vsu-tab-count">{tabCounts.upcoming}</span>
         </button>
         <button 
           className={`vsu-tab ${activeTab === 'completed' ? 'vsu-tab-active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
-          ✅ Completed <span className="vsu-tab-count">{tabCounts.completed}</span>
+          Completed <span className="vsu-tab-count">{tabCounts.completed}</span>
         </button>
         <button 
           className={`vsu-tab ${activeTab === 'canceled' ? 'vsu-tab-active' : ''}`}
           onClick={() => setActiveTab('canceled')}
         >
-          ❌ Canceled <span className="vsu-tab-count">{tabCounts.canceled}</span>
+          Canceled <span className="vsu-tab-count">{tabCounts.canceled}</span>
         </button>
         <button 
           className={`vsu-tab ${activeTab === 'missed' ? 'vsu-tab-active' : ''}`}
           onClick={() => setActiveTab('missed')}
         >
-          ⏰ Missed <span className="vsu-tab-count">{tabCounts.missed}</span>
+          Missed <span className="vsu-tab-count">{tabCounts.missed}</span>
         </button>
       </div>
 
-      {/* Appointment List */}
       <div className="vsu-appointments-list">
         {filteredAppointments.length === 0 ? (
           <div className="vsu-no-appointments">
@@ -304,6 +314,9 @@ const AppointmentViewbyUser = () => {
             const statusBadge = getStatusBadge(appointment.computedStatus);
             const appointmentType = getAppointmentType(appointment);
             const isJoinActive = isJoinButtonActive(appointment);
+            const isPendingStatus = isPending(appointment);
+            const isUpcomingStatus = isUpcoming(appointment);
+            const isMissedStatus = isMissed(appointment);
             
             return (
               <div key={appointment.id} className="vsu-appointment-card">
@@ -336,24 +349,36 @@ const AppointmentViewbyUser = () => {
 
                 <div className="vsu-card-body">
                   <div className="vsu-info-row">
-                    <span className="vsu-info-label">📅 Date & Time:</span>
+                    <span className="vsu-info-label">Date & Time:</span>
                     <span className="vsu-info-value">
                       {formatDate(appointment.appointment_date)} | {formatTime(appointment.slot)}
                     </span>
                   </div>
                   <div className="vsu-info-row">
-                    <span className="vsu-info-label">🩺 Issue:</span>
+                    <span className="vsu-info-label">Issue:</span>
                     <span className="vsu-info-value">{appointment.issue_description || 'N/A'}</span>
                   </div>
                   <div className="vsu-info-row">
-                    <span className="vsu-info-label">📧 Contact:</span>
+                    <span className="vsu-info-label">Contact:</span>
                     <span className="vsu-info-value">{appointment.provider?.user?.email || 'N/A'}</span>
                   </div>
+                  {isPendingStatus && !isMissedStatus && (
+                    <div className="vsu-info-row">
+                      <span className="vsu-info-label">Status:</span>
+                      <span className="vsu-info-value vsu-pending-text">Waiting for doctor's approval</span>
+                    </div>
+                  )}
+                  {isMissedStatus && (
+                    <div className="vsu-info-row">
+                      <span className="vsu-info-label">Status:</span>
+                      <span className="vsu-info-value vsu-missed-text">Appointment was missed</span>
+                    </div>
+                  )}
                 </div>
 
-                {activeTab === 'upcoming' && appointment.computedStatus !== 'canceled' && (
+                {(activeTab === 'upcoming') && !isMissedStatus && (
                   <div className="vsu-card-footer" onClick={(e) => e.stopPropagation()}>
-                    {appointmentType.type === 'Telehealth' && isJoinActive && (
+                    {isUpcomingStatus && appointmentType.type === 'Telehealth' && isJoinActive && (
                       <button 
                         className="vsu-join-btn"
                         onClick={(e) => {
@@ -361,8 +386,11 @@ const AppointmentViewbyUser = () => {
                           handleJoinCall(appointment);
                         }}
                       >
-                        🎥 Join Video Call
+                        Join Video Call
                       </button>
+                    )}
+                    {isPendingStatus && (
+                      <span className="vsu-pending-badge">Awaiting Approval</span>
                     )}
                     <button 
                       className="vsu-cancel-btn"
@@ -394,7 +422,7 @@ const AppointmentViewbyUser = () => {
                         handleDownloadPrescription(appointment);
                       }}
                     >
-                      📄 Download Prescription
+                      Download Prescription
                     </button>
                     <button 
                       className="vsu-review-btn"
@@ -403,7 +431,7 @@ const AppointmentViewbyUser = () => {
                         handleGiveReview(appointment);
                       }}
                     >
-                      ⭐ Give Review
+                      Give Review
                     </button>
                     <button 
                       className="vsu-bookagain-btn"
@@ -412,7 +440,7 @@ const AppointmentViewbyUser = () => {
                         handleBookAgain(appointment);
                       }}
                     >
-                      🔄 Book Again
+                      Book Again
                     </button>
                   </div>
                 )}
@@ -426,7 +454,7 @@ const AppointmentViewbyUser = () => {
                         handleBookAgain(appointment);
                       }}
                     >
-                      🔄 Book Again
+                      Book Again
                     </button>
                     <button 
                       className="vsu-details-btn"
@@ -445,7 +473,6 @@ const AppointmentViewbyUser = () => {
         )}
       </div>
 
-      {/* Floating Modal for Additional Details */}
       {showModal && selectedAppointment && (
         <div className="vsu-modal-overlay" onClick={handleCloseModal}>
           <div className="vsu-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -455,7 +482,7 @@ const AppointmentViewbyUser = () => {
             </div>
             <div className="vsu-modal-body">
               <div className="vsu-detail-section">
-                <h3>📌 Basic Information</h3>
+                <h3>Basic Information</h3>
                 <div className="vsu-detail-row">
                   <span className="vsu-detail-label">Appointment ID:</span>
                   <span>{selectedAppointment.id}</span>
@@ -475,7 +502,11 @@ const AppointmentViewbyUser = () => {
                   </span>
                 </div>
                 <div className="vsu-detail-row">
-                  <span className="vsu-detail-label">Issue Date (Created):</span>
+                  <span className="vsu-detail-label">Backend Status:</span>
+                  <span>{selectedAppointment.status || 'N/A'}</span>
+                </div>
+                <div className="vsu-detail-row">
+                  <span className="vsu-detail-label">Created:</span>
                   <span>{formatDateTime(selectedAppointment.created_at)}</span>
                 </div>
               </div>
@@ -493,7 +524,7 @@ const AppointmentViewbyUser = () => {
               </div>
 
               <div className="vsu-detail-section">
-                <h3>👨‍⚕️ Doctor Information</h3>
+                <h3>Doctor Information</h3>
                 <div className="vsu-detail-row">
                   <span className="vsu-detail-label">Full Name:</span>
                   <span>{selectedAppointment.provider?.user?.full_name || 'N/A'}</span>
@@ -530,7 +561,7 @@ const AppointmentViewbyUser = () => {
 
               {selectedAppointment.provider?.img_url && (
                 <div className="vsu-detail-section">
-                  <h3>📸 Doctor Photo</h3>
+                  <h3>Doctor Photo</h3>
                   <img 
                     src={selectedAppointment.provider.img_url} 
                     alt="Doctor" 
@@ -540,29 +571,31 @@ const AppointmentViewbyUser = () => {
                 </div>
               )}
 
-              {/* Chamber Location / Map Link for In-Person */}
               {getAppointmentType(selectedAppointment).type === 'In-Person' && (
                 <div className="vsu-detail-section">
-                  <h3>📍 Chamber Location</h3>
+                  <h3>Chamber Location</h3>
                   <div className="vsu-detail-row">
                     <span className="vsu-detail-label">Address:</span>
                     <span>123 Healthcare Avenue, Medical District, Dhaka</span>
                   </div>
                   <div className="vsu-detail-row">
                     <a href="https://maps.google.com/?q=Dhaka+Medical+District" target="_blank" rel="noopener noreferrer" className="vsu-map-link">
-                      🗺️ Get Directions on Google Maps
+                      Get Directions on Google Maps
                     </a>
                   </div>
                 </div>
               )}
             </div>
             <div className="vsu-modal-footer">
-              {activeTab === 'upcoming' && selectedAppointment.computedStatus !== 'canceled' && (
+              {(activeTab === 'upcoming' && selectedAppointment.computedStatus !== 'cancelled' && !isMissed(selectedAppointment)) && (
                 <>
-                  {getAppointmentType(selectedAppointment).type === 'Telehealth' && isJoinButtonActive(selectedAppointment) && (
+                  {isUpcoming(selectedAppointment) && getAppointmentType(selectedAppointment).type === 'Telehealth' && isJoinButtonActive(selectedAppointment) && (
                     <button onClick={() => handleJoinCall(selectedAppointment)} className="vsu-join-modal-btn">
-                      🎥 Join Video Call
+                      Join Video Call
                     </button>
+                  )}
+                  {isPending(selectedAppointment) && (
+                    <span className="vsu-pending-modal-text">Awaiting Doctor's Approval</span>
                   )}
                   <button onClick={() => handleCancelAppointment(selectedAppointment)} className="vsu-cancel-modal-btn">
                     Cancel Appointment
@@ -572,15 +605,20 @@ const AppointmentViewbyUser = () => {
               {activeTab === 'completed' && (
                 <>
                   <button onClick={() => handleDownloadPrescription(selectedAppointment)} className="vsu-prescription-modal-btn">
-                    📄 Download Prescription
+                    Download Prescription
                   </button>
                   <button onClick={() => handleGiveReview(selectedAppointment)} className="vsu-review-modal-btn">
-                    ⭐ Write a Review
+                    Write a Review
                   </button>
                   <button onClick={() => handleBookAgain(selectedAppointment)} className="vsu-bookagain-modal-btn">
-                    🔄 Book Again
+                    Book Again
                   </button>
                 </>
+              )}
+              {(activeTab === 'canceled' || activeTab === 'missed' || isMissed(selectedAppointment)) && (
+                <button onClick={() => handleBookAgain(selectedAppointment)} className="vsu-bookagain-modal-btn">
+                  Book Again
+                </button>
               )}
               <button onClick={handleCloseModal} className="vsu-close-modal-btn">Close</button>
             </div>
