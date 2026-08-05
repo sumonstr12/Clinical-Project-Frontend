@@ -67,8 +67,6 @@ const Home = () => {
 
       <FindDoctor />
 
-      <Appointment />
-
       {/* Services */}
       <Services />
 
