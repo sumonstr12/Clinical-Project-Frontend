@@ -31,7 +31,6 @@ const CaregiverRequest = () => {
           }));
 
         setCaregivers(formattedData);
-        console.log("Caregiver Requests:", formattedData);
       }
     } catch (error) {
       console.log(error);
