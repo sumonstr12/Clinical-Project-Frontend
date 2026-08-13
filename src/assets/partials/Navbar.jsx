@@ -1,32 +1,276 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import Cookies from 'js-cookie';
 import myaxios from "../utilities/myaxios";
-import { successToast } from "../utilities/toast";
+import { successToast, errorToast } from "../utilities/toast";
+import "../css/navbar.css";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [userData, setUserData] = useState(null);
-
+  
+  // Notification states
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [initialLoad, setInitialLoad] = useState(true);
+  
+  // Detail dialog states
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  const observerRef = useRef(null);
   const navigate = useNavigate();
 
   const userRole = userData?.role?.toUpperCase();
 
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(async (pageNum = 1, append = false) => {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      const response = await myaxios.get(
+        `/admin/notifications/?page=${pageNum}&page_size=${pageSize}`
+      );
+
+      if (response.data.status) {
+        const { results, pagination } = response.data.data;
+
+        setNotifications(prev =>
+          append ? [...prev, ...results] : results
+        );
+
+        setHasMore(pagination.has_next);
+        setPage(pageNum);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
+    }
+  }, [loading, pageSize]);
+
+  // Fetch unread count separately
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await myaxios.get('/admin/notifications/unread-count/');
+      if (response.data.status) {
+        setUnreadCount(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, []);
+
+  // Mark notification as read
+  const markNotificationAsRead = useCallback(async (notificationId) => {
+    try {
+      const response = await myaxios.patch(
+        `/admin/notifications/${notificationId}/`,
+        {
+          is_read: true,
+        }
+      );
+
+      if (response.data.status) {
+        setNotifications(prev =>
+          prev.map(notification =>
+            notification.id === notificationId
+              ? { ...notification, is_read: true }
+              : notification
+          )
+        );
+
+        setSelectedNotification(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            is_read: true,
+            notification: prev.notification
+              ? { ...prev.notification, is_read: true }
+              : prev.notification,
+          };
+        });
+
+        await fetchUnreadCount();
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }, [fetchUnreadCount]);
+
+  // Fetch notification detail
+  const fetchNotificationDetail = useCallback(async (notificationId) => {
+    setDetailLoading(true);
+
+    try {
+      const response = await myaxios.get(
+        `/admin/notifications/${notificationId}/`
+      );
+
+      if (response.data.status) {
+        const notificationData = response.data.data;
+        setSelectedNotification(notificationData);
+        setIsDialogOpen(true);
+
+        if (!notificationData.is_read) {
+          await markNotificationAsRead(notificationId);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching notification detail:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, [markNotificationAsRead]);
+
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
+    try {
+      const response = await myaxios.post(
+        '/admin/notifications/mark-read/',
+        {
+          notification_ids: [],
+        }
+      );
+
+      if (response.data.status) {
+        setNotifications(prev =>
+          prev.map(notification => ({
+            ...notification,
+            is_read: true,
+          }))
+        );
+
+        setSelectedNotification(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            is_read: true,
+            notification: prev.notification
+              ? { ...prev.notification, is_read: true }
+              : prev.notification,
+          };
+        });
+
+        await fetchUnreadCount();
+      }
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  }, [fetchUnreadCount]);
+
+  // Delete a notification
+  const deleteNotification = useCallback(async (notificationId, e) => {
+    e?.stopPropagation();
+
+    try {
+      const response = await myaxios.delete(
+        `/admin/notifications/${notificationId}/`
+      );
+
+      if (response.data.status) {
+        const deleted = notifications.find(
+          notification => notification.id === notificationId
+        );
+
+        setNotifications(prev =>
+          prev.filter(notification => notification.id !== notificationId)
+        );
+
+        if (deleted && !deleted.is_read) {
+          await fetchUnreadCount();
+        }
+
+        if (selectedNotification?.id === notificationId) {
+          setIsDialogOpen(false);
+          setSelectedNotification(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  }, [notifications, selectedNotification, fetchUnreadCount]);
+
+  // Handle notification click - open detail dialog
+  const handleNotificationClick = useCallback(async (notificationId) => {
+    await fetchNotificationDetail(notificationId);
+  }, [fetchNotificationDetail]);
+
+  // Close dialog
+  const closeDialog = useCallback(() => {
+    setIsDialogOpen(false);
+    setSelectedNotification(null);
+  }, []);
+
+  // Infinite scroll observer
+  const lastNotificationRef = useCallback((node) => {
+    if (loading) return;
+    if (observerRef.current) observerRef.current.disconnect();
+    
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        fetchNotifications(page + 1, true);
+      }
+    });
+    
+    if (node) observerRef.current.observe(node);
+  }, [loading, hasMore, page, fetchNotifications]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('userData');
-    const role = user ? JSON.parse(user).role : null;
-    console.log("Navbar - User role from localStorage:", role);
-    const full_name = localStorage.getItem('f_n')
     
     if (token || user) {
       setIsLoggedIn(true);
       setUserData(JSON.parse(user));
     }
   }, []);
+
+  // Load notifications on mount if logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications(1, false);
+      fetchUnreadCount();
+    }
+  }, [isLoggedIn]);
+
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const target = event.target;
+      if (!target.closest('.noti-dropdown') && !target.closest('.noti-trigger')) {
+        setNotificationsOpen(false);
+      }
+      if (!target.closest('.noti-profile-dropdown') && !target.closest('.noti-profile-btn')) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle Escape key to close dialog
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === 'Escape' && isDialogOpen) {
+        closeDialog();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isDialogOpen, closeDialog]);
 
   const gotToHome = () => {
     navigate('/');
@@ -56,11 +300,14 @@ const Navbar = () => {
   const goToUserNotifications = () => {
     navigate('/users/notifications');
     setMobileOpen(false);
+    setNotificationsOpen(false);
+    setShowProfileMenu(false);
   }
 
   const goToUserAppointments = () => {
     navigate('/users/appointments');
     setMobileOpen(false);
+    setShowProfileMenu(false);
   };
 
   const goToContact = () => {
@@ -85,11 +332,8 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-
     try {
-
-      const response =
-        await myaxios.post("user-logout");
+      const response = await myaxios.post("user-logout");
 
       if (response?.data?.status) {
         successToast(
@@ -97,41 +341,30 @@ const Navbar = () => {
           "Logged out successfully!"
         );
       }
-
     } catch (error) {
-
       console.log("Logout API error:", error);
-
     } finally {
-
-    
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
       localStorage.removeItem("rememberMe");
       localStorage.removeItem("role");
       localStorage.removeItem("full_name");
-
       
       Cookies.remove("refresh_token");
       Cookies.remove("email");
-
       
       setIsLoggedIn(false);
       setUserData(null);
       setShowProfileMenu(false);
       setMobileOpen(false);
-
       
       navigate("/", { replace: true });
-
     }
   };
 
   // Get user initials for avatar
   const getUserInitials = () => {
-    // console.log("User full name:", userData.full_name);
     if (userData?.full_name) {
-      
       const names = userData.full_name.split(' ');
       if (names.length >= 2) {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();
@@ -141,30 +374,124 @@ const Navbar = () => {
     return 'U';
   };
 
-  const getName = () => {
-    if (userData?.full_name) {
-      return userData.full_name;
-    }
-    return 'User';
+  // Format time for display
+  const formatNotificationTime = (timeString) => {
+    if (!timeString) return '';
+    return timeString;
+  };
+
+  // Notification Detail Dialog Component
+  const NotificationDetailDialog = () => {
+    if (!selectedNotification) return null;
+    
+    const { notification, formatted_created_at, formatted_updated_at, is_read } = selectedNotification;
+    
+    return (
+      <div className="noti-dialog-overlay">
+        <div className="noti-dialog">
+          <div className="noti-dialog-header">
+            <div className="noti-dialog-header-left">
+              <div className={`noti-dialog-status-dot ${!is_read ? 'noti-unread' : 'noti-read'}`} />
+              <h2 className="noti-dialog-title">Notification Details</h2>
+            </div>
+            <button onClick={closeDialog} className="noti-dialog-close">
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+          
+          <div className="noti-dialog-body">
+            <div className="noti-dialog-status-row">
+              <span className={`noti-dialog-status-badge ${!is_read ? 'noti-badge-unread' : 'noti-badge-read'}`}>
+                {!is_read ? '● Unread' : '● Read'}
+              </span>
+              <span className="noti-dialog-id">ID: #{selectedNotification.id}</span>
+            </div>
+            
+            <div>
+              <h3 className="noti-dialog-title-text">
+                {notification.title}
+              </h3>
+            </div>
+            
+            <div className="noti-dialog-content-box">
+              <p className="noti-dialog-content-text">
+                {notification.content}
+              </p>
+            </div>
+            
+            <div className="noti-dialog-metadata">
+              <div className="noti-dialog-metadata-item">
+                <div className="noti-dialog-metadata-label">
+                  <i className="fas fa-calendar"></i>
+                  <span>Created</span>
+                </div>
+                <p className="noti-dialog-metadata-value">
+                  {formatted_created_at}
+                </p>
+                <p className="noti-dialog-metadata-sub">
+                  {notification.created_at ? new Date(notification.created_at).toLocaleString() : ''}
+                </p>
+              </div>
+              <div className="noti-dialog-metadata-item">
+                <div className="noti-dialog-metadata-label">
+                  <i className="fas fa-clock"></i>
+                  <span>Updated</span>
+                </div>
+                <p className="noti-dialog-metadata-value">
+                  {formatted_updated_at}
+                </p>
+                <p className="noti-dialog-metadata-sub">
+                  {notification.updated_at ? new Date(notification.updated_at).toLocaleString() : ''}
+                </p>
+              </div>
+            </div>
+            
+            <div className="noti-dialog-user-info">
+              <div className="noti-dialog-user-info-label">
+                <i className="fas fa-user"></i>
+                <span>User Information</span>
+              </div>
+              <p className="noti-dialog-user-info-value">
+                User ID: {selectedNotification.user}
+              </p>
+            </div>
+            
+            <div className="noti-dialog-actions">
+              <button
+                onClick={(e) => deleteNotification(selectedNotification.id, e)}
+                className="noti-dialog-delete-btn"
+              >
+                Delete Notification
+              </button>
+              <button
+                onClick={closeDialog}
+                className="noti-dialog-close-btn"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <>
-      <nav className="navbar" role="navigation" aria-label="Main Navigation">
-        
+      <nav className="noti-navbar">
         {/* Logo */}
-        <div className="nav-logo" onClick={gotToHome} style={{ cursor: 'pointer' }}>
-          <div className="logo-icon">
+        <div className="noti-nav-logo" onClick={gotToHome}>
+          <div className="noti-logo-icon">
             <i className="fas fa-heartbeat"></i>
           </div>
           <div>
-            <span className="logo-text">ClinicCare</span>
-            <span className="logo-sub">Healthcare System</span>
+            <span className="noti-logo-text">ClinicCare</span>
+            <span className="noti-logo-sub">Healthcare System</span>
           </div>
         </div>
 
-        {/* Nav Links */}
-        <ul className="nav-links" role="menubar">
+        {/* Nav Links - Desktop */}
+        <ul className="noti-nav-links">
           <li><button onClick={gotToHome}>Home</button></li>
           <li><button onClick={goToFindDoctor}>Find Doctor</button></li>
           <li><button onClick={goToAppointment}>Get Appointment</button></li>
@@ -173,59 +500,175 @@ const Navbar = () => {
           <li><button onClick={goToContact}>Contact</button></li>
         </ul>
 
-        {/* Auth Buttons - Desktop */}
-        <div className="nav-auth">
+        {/* Auth Buttons - Desktop only */}
+        <div className="noti-nav-auth">
           {!isLoggedIn ? (
             <>
-              <button className="btn-signin" onClick={goToSignUp}>Sign Up</button>
-              <button className="btn-login" onClick={goToLogin}>Login</button>
+              <button className="noti-btn-signin" onClick={goToSignUp}>Sign Up</button>
+              <button className="noti-btn-login" onClick={goToLogin}>Login</button>
             </>
           ) : (
-            <div className="profile-menu-container">
+            <div className="noti-profile-container">
               <button 
-                className="profile-btn"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="noti-profile-btn"
+                onClick={() => {
+                  setShowProfileMenu(!showProfileMenu);
+                  if (notificationsOpen) setNotificationsOpen(false);
+                }}
               >
-                <div className="profile-avatar">
+                <div className="noti-profile-avatar">
                   {userData?.profile_image ? (
                     <img src={userData.profile_image} alt="Profile" />
                   ) : (
                     <span>{getUserInitials()}</span>
                   )}
                 </div>
-                <span className="profile-name">
+                <span className="noti-profile-name">
                   {userData?.full_name?.split(' ')[0] || 'User'}
                 </span>
                 <i className={`fas fa-chevron-${showProfileMenu ? 'up' : 'down'}`}></i>
               </button>
               
               {showProfileMenu && (
-                <div className="profile-dropdown">
-                  <button onClick={goToProfile}>
+                <div className="noti-profile-dropdown">
+                  <button onClick={goToProfile} className="noti-dropdown-item">
                     <i className="fas fa-user"></i>
                     My Profile
                   </button>
-                  <button onClick={goToUserAppointments}>
+                  <button onClick={goToUserAppointments} className="noti-dropdown-item">
                     <i className="fas fa-calendar-check"></i>
                     My Appointments
                   </button>
-                  <button onClick={goToUserNotifications}>
-                    <i className="fas fa-bell"></i>
-                    Notifications
-                  </button>
+                  
+                  <div className="noti-trigger">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotificationsOpen(!notificationsOpen);
+                        if (!notificationsOpen && initialLoad) {
+                          fetchNotifications(1, false);
+                          fetchUnreadCount();
+                        }
+                      }}
+                      className="noti-dropdown-item noti-notification-item"
+                    >
+                      <i className="fas fa-bell"></i>
+                      Notifications
+                      {unreadCount > 0 && (
+                        <span className="noti-badge-count">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
+
+                    {notificationsOpen && (
+                      <div className="noti-dropdown">
+                        <div className="noti-dropdown-header">
+                          <h4 className="noti-dropdown-title">
+                            <i className="fas fa-bell"></i>
+                            Notifications
+                            {unreadCount > 0 && (
+                              <span className="noti-dropdown-unread-badge">
+                                {unreadCount} unread
+                              </span>
+                            )}
+                          </h4>
+                          <div className="noti-dropdown-actions">
+                            {unreadCount > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markAllAsRead();
+                                }}
+                                className="noti-mark-all-read"
+                              >
+                                Mark all read
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNotificationsOpen(false);
+                              }}
+                              className="noti-dropdown-close"
+                            >
+                              <i className="fas fa-times"></i>
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {notifications.length === 0 && !loading ? (
+                          <div className="noti-empty-state">
+                            <i className="fas fa-bell"></i>
+                            <p>No notifications</p>
+                          </div>
+                        ) : (
+                          <>
+                            {notifications.map((notification, index) => (
+                              <div
+                                key={notification.id}
+                                ref={index === notifications.length - 1 ? lastNotificationRef : null}
+                                onClick={() => handleNotificationClick(notification.id)}
+                                className={`noti-notification-item-list ${!notification.is_read ? 'noti-unread-item' : ''}`}
+                              >
+                                <div className="noti-notification-content">
+                                  <div className="noti-notification-text">
+                                    <p className="noti-notification-title">
+                                      {notification.notification_title}
+                                    </p>
+                                    <p className="noti-notification-message">
+                                      {notification.notification_content}
+                                    </p>
+                                    <p className="noti-notification-time">
+                                      {formatNotificationTime(notification.formatted_time)}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={(e) => deleteNotification(notification.id, e)}
+                                    className="noti-notification-delete"
+                                  >
+                                    <i className="fas fa-times"></i>
+                                  </button>
+                                </div>
+                                {!notification.is_read && (
+                                  <div className="noti-notification-new">
+                                    <span>● New</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            
+                            {loading && (
+                              <div className="noti-loading">
+                                <div className="noti-spinner"></div>
+                                <p>{notifications.length === 0 ? 'Loading notifications...' : 'Loading more...'}</p>
+                              </div>
+                            )}
+                            
+                            {!hasMore && notifications.length > 0 && (
+                              <div className="noti-no-more">
+                                <p>No more notifications</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {userRole === "PATIENT" ? (
-                    <button onClick={() => navigate('/patient/caregiver-requests')}>
+                    <button onClick={() => navigate('/patient/caregiver-requests')} className="noti-dropdown-item">
                       <i className="fas fa-user-nurse"></i>
                       Caregiver Requests
                     </button>
                   ) : (
-                    <button onClick={() => navigate('/patient-approval')}>
+                    <button onClick={() => navigate('/patient-approval')} className="noti-dropdown-item">
                       <i className="fas fa-cog"></i>
                       Sent Requests(Approval)
                     </button>
                   )}
-                  <div className="dropdown-divider"></div>
-                  <button onClick={handleLogout} className="logout-btn">
+                  <div className="noti-dropdown-divider"></div>
+                  <button onClick={handleLogout} className="noti-dropdown-item noti-logout-item">
                     <i className="fas fa-sign-out-alt"></i>
                     Logout
                   </button>
@@ -235,9 +678,9 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Hamburger */}
+        {/* Hamburger - Always visible on mobile */}
         <button
-          className="nav-hamburger"
+          className="noti-nav-hamburger"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle mobile menu"
         >
@@ -248,7 +691,7 @@ const Navbar = () => {
       </nav>
 
       {/* Mobile Menu */}
-      <div className={`nav-mobile ${mobileOpen ? "open" : ""}`}>
+      <div className={`noti-nav-mobile ${mobileOpen ? "noti-open" : ""}`}>
         <button onClick={gotToHome}>Home</button>
         <button onClick={goToFindDoctor}>Find Doctor</button>
         <button onClick={goToAppointment}>Get Appointment</button>
@@ -256,55 +699,183 @@ const Navbar = () => {
         <button onClick={goToAboutUs}>About Us</button>
         <button onClick={goToContact}>Contact</button>
 
-        <div className="mobile-auth">
+        <div className="noti-mobile-auth">
           {!isLoggedIn ? (
             <>
-              <button className="btn-signin" style={{ flex: 1 }} onClick={goToSignUp}>Sign Up</button>
-              <button className="btn-login" style={{ flex: 1 }} onClick={goToLogin}>Login</button>
+              <button className="noti-btn-signin noti-mobile-btn" onClick={goToSignUp}>Sign Up</button>
+              <button className="noti-btn-login noti-mobile-btn" onClick={goToLogin}>Login</button>
             </>
           ) : (
-            <div className="mobile-profile-section">
-              <div className="mobile-profile-header">
-                <div className="mobile-profile-avatar">
+            <div className="noti-mobile-profile">
+              <div className="noti-mobile-profile-header">
+                <div className="noti-mobile-profile-avatar">
                   {userData?.profile_image ? (
                     <img src={userData.profile_image} alt="Profile" />
                   ) : (
                     <span>{getUserInitials()}</span>
                   )}
                 </div>
-                <div className="mobile-profile-info">
-                  <span className="mobile-profile-name">{userData?.full_name || 'User'}</span>
-                  <span className="mobile-profile-email">{userData?.email || ''}</span>
+                <div className="noti-mobile-profile-info">
+                  <span className="noti-mobile-profile-name">{userData?.full_name || 'User'}</span>
+                  <span className="noti-mobile-profile-email">{userData?.email || ''}</span>
                 </div>
               </div>
-              <button className="mobile-profile-btn" onClick={goToProfile}>
+              
+              <button className="noti-mobile-profile-btn" onClick={goToProfile}>
                 <i className="fas fa-user"></i> Profile
               </button>
-              <button className="mobile-profile-btn" onClick={goToAppointment}>
+              
+              <button className="noti-mobile-profile-btn" onClick={goToUserAppointments}>
                 <i className="fas fa-calendar-check"></i> My Appointments
               </button>
+              
+              {/* Mobile Notification Button */}
+              <div className="noti-mobile-notification-wrapper">
+                <button 
+                  className="noti-mobile-profile-btn noti-mobile-notification-btn" 
+                  onClick={() => {
+                    setNotificationsOpen(!notificationsOpen);
+                    if (!notificationsOpen && initialLoad) {
+                      fetchNotifications(1, false);
+                      fetchUnreadCount();
+                    }
+                  }}
+                >
+                  <i className="fas fa-bell"></i>
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span className="noti-mobile-badge">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                {/* Mobile Notification Dropdown */}
+                {notificationsOpen && (
+                  <div className="noti-mobile-dropdown">
+                    <div className="noti-mobile-dropdown-header">
+                      <h4 className="noti-mobile-dropdown-title">
+                        <i className="fas fa-bell"></i>
+                        Notifications
+                        {unreadCount > 0 && (
+                          <span className="noti-mobile-dropdown-badge">
+                            {unreadCount} unread
+                          </span>
+                        )}
+                      </h4>
+                      <div className="noti-mobile-dropdown-actions">
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            className="noti-mobile-mark-read"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setNotificationsOpen(false)}
+                          className="noti-mobile-dropdown-close"
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {notifications.length === 0 && !loading ? (
+                      <div className="noti-mobile-empty">
+                        <i className="fas fa-bell"></i>
+                        <p>No notifications</p>
+                      </div>
+                    ) : (
+                      <>
+                        {notifications.map((notification, index) => (
+                          <div
+                            key={notification.id}
+                            ref={index === notifications.length - 1 ? lastNotificationRef : null}
+                            onClick={() => handleNotificationClick(notification.id)}
+                            className={`noti-mobile-notification-item ${!notification.is_read ? 'noti-mobile-unread' : ''}`}
+                          >
+                            <div className="noti-mobile-notification-content">
+                              <div className="noti-mobile-notification-text">
+                                <p className="noti-mobile-notification-title">
+                                  {notification.notification_title}
+                                </p>
+                                <p className="noti-mobile-notification-message">
+                                  {notification.notification_content}
+                                </p>
+                                <p className="noti-mobile-notification-time">
+                                  {formatNotificationTime(notification.formatted_time)}
+                                </p>
+                              </div>
+                              <button
+                                onClick={(e) => deleteNotification(notification.id, e)}
+                                className="noti-mobile-notification-delete"
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            </div>
+                            {!notification.is_read && (
+                              <div className="noti-mobile-notification-new">
+                                <span>● New</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        
+                        {loading && (
+                          <div className="noti-mobile-loading">
+                            <div className="noti-spinner"></div>
+                            <p>{notifications.length === 0 ? 'Loading notifications...' : 'Loading more...'}</p>
+                          </div>
+                        )}
+                        
+                        {!hasMore && notifications.length > 0 && (
+                          <div className="noti-mobile-no-more">
+                            <p>No more notifications</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {userRole === "PATIENT" ? (
                 <button
-                  className="mobile-profile-btn"
+                  className="noti-mobile-profile-btn"
                   onClick={() => navigate('/patient/caregiver-requests')}
                 >
                   <i className="fas fa-user-nurse"></i> Caregiver Requests
                 </button>
               ) : (
                 <button
-                  className="mobile-profile-btn"
+                  className="noti-mobile-profile-btn"
                   onClick={() => navigate('/patient-approval')}
                 >
                   <i className="fas fa-cog"></i> Sent Requests(Approval)
                 </button>
               )}
-              <button className="mobile-logout-btn" onClick={handleLogout}>
+              
+              <button className="noti-mobile-logout-btn" onClick={handleLogout}>
                 <i className="fas fa-sign-out-alt"></i> Logout
               </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Notification Detail Dialog */}
+      {isDialogOpen && <NotificationDetailDialog />}
+
+      {/* Loading Overlay for Detail */}
+      {detailLoading && (
+        <div className="noti-detail-loading-overlay">
+          <div className="noti-detail-loading-box">
+            <div className="noti-spinner noti-spinner-large"></div>
+            <p>Loading notification details...</p>
+          </div>
+        </div>
+      )}
     </>
   );
 };

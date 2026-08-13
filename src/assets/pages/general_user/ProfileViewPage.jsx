@@ -7,11 +7,8 @@ import UserProfile from '../../components/general_user/UserProfile';
 const ProfileViewPage = () => {
   return (
     <div>
-        <div className='login-container'>
-          <div ></div><Navbar />
-          <UserProfile />
-          
-      </div>
+      <Navbar />
+      <UserProfile />
         
     </div>
   )
