@@ -21,11 +21,6 @@ const Navbar = () => {
   const [pageSize] = useState(20);
   const [initialLoad, setInitialLoad] = useState(true);
   
-  // Detail dialog states
-  const [selectedNotification, setSelectedNotification] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
   const observerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -91,48 +86,12 @@ const Navbar = () => {
           )
         );
 
-        setSelectedNotification(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            is_read: true,
-            notification: prev.notification
-              ? { ...prev.notification, is_read: true }
-              : prev.notification,
-          };
-        });
-
         await fetchUnreadCount();
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
   }, [fetchUnreadCount]);
-
-  // Fetch notification detail
-  const fetchNotificationDetail = useCallback(async (notificationId) => {
-    setDetailLoading(true);
-
-    try {
-      const response = await myaxios.get(
-        `/admin/notifications/${notificationId}/`
-      );
-
-      if (response.data.status) {
-        const notificationData = response.data.data;
-        setSelectedNotification(notificationData);
-        setIsDialogOpen(true);
-
-        if (!notificationData.is_read) {
-          await markNotificationAsRead(notificationId);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching notification detail:', error);
-    } finally {
-      setDetailLoading(false);
-    }
-  }, [markNotificationAsRead]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -152,17 +111,6 @@ const Navbar = () => {
           }))
         );
 
-        setSelectedNotification(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            is_read: true,
-            notification: prev.notification
-              ? { ...prev.notification, is_read: true }
-              : prev.notification,
-          };
-        });
-
         await fetchUnreadCount();
       }
     } catch (error) {
@@ -171,9 +119,7 @@ const Navbar = () => {
   }, [fetchUnreadCount]);
 
   // Delete a notification
-  const deleteNotification = useCallback(async (notificationId, e) => {
-    e?.stopPropagation();
-
+  const deleteNotification = useCallback(async (notificationId) => {
     try {
       const response = await myaxios.delete(
         `/admin/notifications/${notificationId}/`
@@ -191,27 +137,11 @@ const Navbar = () => {
         if (deleted && !deleted.is_read) {
           await fetchUnreadCount();
         }
-
-        if (selectedNotification?.id === notificationId) {
-          setIsDialogOpen(false);
-          setSelectedNotification(null);
-        }
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
-  }, [notifications, selectedNotification, fetchUnreadCount]);
-
-  // Handle notification click - open detail dialog
-  const handleNotificationClick = useCallback(async (notificationId) => {
-    await fetchNotificationDetail(notificationId);
-  }, [fetchNotificationDetail]);
-
-  // Close dialog
-  const closeDialog = useCallback(() => {
-    setIsDialogOpen(false);
-    setSelectedNotification(null);
-  }, []);
+  }, [notifications, fetchUnreadCount]);
 
   // Infinite scroll observer
   const lastNotificationRef = useCallback((node) => {
@@ -249,9 +179,11 @@ const Navbar = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       const target = event.target;
-      if (!target.closest('.noti-dropdown') && !target.closest('.noti-trigger')) {
+      // Close notification dropdown if clicked outside
+      if (!target.closest('.noti-dropdown') && !target.closest('.noti-trigger') && !target.closest('.noti-mobile-dropdown')) {
         setNotificationsOpen(false);
       }
+      // Close profile menu if clicked outside
       if (!target.closest('.noti-profile-dropdown') && !target.closest('.noti-profile-btn')) {
         setShowProfileMenu(false);
       }
@@ -260,17 +192,6 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Handle Escape key to close dialog
-  useEffect(() => {
-    const handleEsc = (event) => {
-      if (event.key === 'Escape' && isDialogOpen) {
-        closeDialog();
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [isDialogOpen, closeDialog]);
 
   const gotToHome = () => {
     navigate('/');
@@ -380,102 +301,6 @@ const Navbar = () => {
     return timeString;
   };
 
-  // Notification Detail Dialog Component
-  const NotificationDetailDialog = () => {
-    if (!selectedNotification) return null;
-    
-    const { notification, formatted_created_at, formatted_updated_at, is_read } = selectedNotification;
-    
-    return (
-      <div className="noti-dialog-overlay">
-        <div className="noti-dialog">
-          <div className="noti-dialog-header">
-            <div className="noti-dialog-header-left">
-              <div className={`noti-dialog-status-dot ${!is_read ? 'noti-unread' : 'noti-read'}`} />
-              <h2 className="noti-dialog-title">Notification Details</h2>
-            </div>
-            <button onClick={closeDialog} className="noti-dialog-close">
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          
-          <div className="noti-dialog-body">
-            <div className="noti-dialog-status-row">
-              <span className={`noti-dialog-status-badge ${!is_read ? 'noti-badge-unread' : 'noti-badge-read'}`}>
-                {!is_read ? '● Unread' : '● Read'}
-              </span>
-              <span className="noti-dialog-id">ID: #{selectedNotification.id}</span>
-            </div>
-            
-            <div>
-              <h3 className="noti-dialog-title-text">
-                {notification.title}
-              </h3>
-            </div>
-            
-            <div className="noti-dialog-content-box">
-              <p className="noti-dialog-content-text">
-                {notification.content}
-              </p>
-            </div>
-            
-            <div className="noti-dialog-metadata">
-              <div className="noti-dialog-metadata-item">
-                <div className="noti-dialog-metadata-label">
-                  <i className="fas fa-calendar"></i>
-                  <span>Created</span>
-                </div>
-                <p className="noti-dialog-metadata-value">
-                  {formatted_created_at}
-                </p>
-                <p className="noti-dialog-metadata-sub">
-                  {notification.created_at ? new Date(notification.created_at).toLocaleString() : ''}
-                </p>
-              </div>
-              <div className="noti-dialog-metadata-item">
-                <div className="noti-dialog-metadata-label">
-                  <i className="fas fa-clock"></i>
-                  <span>Updated</span>
-                </div>
-                <p className="noti-dialog-metadata-value">
-                  {formatted_updated_at}
-                </p>
-                <p className="noti-dialog-metadata-sub">
-                  {notification.updated_at ? new Date(notification.updated_at).toLocaleString() : ''}
-                </p>
-              </div>
-            </div>
-            
-            <div className="noti-dialog-user-info">
-              <div className="noti-dialog-user-info-label">
-                <i className="fas fa-user"></i>
-                <span>User Information</span>
-              </div>
-              <p className="noti-dialog-user-info-value">
-                User ID: {selectedNotification.user}
-              </p>
-            </div>
-            
-            <div className="noti-dialog-actions">
-              <button
-                onClick={(e) => deleteNotification(selectedNotification.id, e)}
-                className="noti-dialog-delete-btn"
-              >
-                Delete Notification
-              </button>
-              <button
-                onClick={closeDialog}
-                className="noti-dialog-close-btn"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <nav className="noti-navbar">
@@ -542,8 +367,7 @@ const Navbar = () => {
                   
                   <div className="noti-trigger">
                     <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setNotificationsOpen(!notificationsOpen);
                         if (!notificationsOpen && initialLoad) {
                           fetchNotifications(1, false);
@@ -576,20 +400,14 @@ const Navbar = () => {
                           <div className="noti-dropdown-actions">
                             {unreadCount > 0 && (
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  markAllAsRead();
-                                }}
+                                onClick={markAllAsRead}
                                 className="noti-mark-all-read"
                               >
                                 Mark all read
                               </button>
                             )}
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setNotificationsOpen(false);
-                              }}
+                              onClick={() => setNotificationsOpen(false)}
                               className="noti-dropdown-close"
                             >
                               <i className="fas fa-times"></i>
@@ -608,8 +426,13 @@ const Navbar = () => {
                               <div
                                 key={notification.id}
                                 ref={index === notifications.length - 1 ? lastNotificationRef : null}
-                                onClick={() => handleNotificationClick(notification.id)}
+                                onClick={() => {
+                                  if (!notification.is_read) {
+                                    markNotificationAsRead(notification.id);
+                                  }
+                                }}
                                 className={`noti-notification-item-list ${!notification.is_read ? 'noti-unread-item' : ''}`}
+                                style={{ cursor: 'pointer' }}
                               >
                                 <div className="noti-notification-content">
                                   <div className="noti-notification-text">
@@ -624,7 +447,10 @@ const Navbar = () => {
                                     </p>
                                   </div>
                                   <button
-                                    onClick={(e) => deleteNotification(notification.id, e)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteNotification(notification.id);
+                                    }}
                                     className="noti-notification-delete"
                                   >
                                     <i className="fas fa-times"></i>
@@ -792,8 +618,13 @@ const Navbar = () => {
                           <div
                             key={notification.id}
                             ref={index === notifications.length - 1 ? lastNotificationRef : null}
-                            onClick={() => handleNotificationClick(notification.id)}
+                            onClick={() => {
+                              if (!notification.is_read) {
+                                markNotificationAsRead(notification.id);
+                              }
+                            }}
                             className={`noti-mobile-notification-item ${!notification.is_read ? 'noti-mobile-unread' : ''}`}
+                            style={{ cursor: 'pointer' }}
                           >
                             <div className="noti-mobile-notification-content">
                               <div className="noti-mobile-notification-text">
@@ -808,7 +639,10 @@ const Navbar = () => {
                                 </p>
                               </div>
                               <button
-                                onClick={(e) => deleteNotification(notification.id, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNotification(notification.id);
+                                }}
                                 className="noti-mobile-notification-delete"
                               >
                                 <i className="fas fa-times"></i>
@@ -863,19 +697,6 @@ const Navbar = () => {
           )}
         </div>
       </div>
-
-      {/* Notification Detail Dialog */}
-      {isDialogOpen && <NotificationDetailDialog />}
-
-      {/* Loading Overlay for Detail */}
-      {detailLoading && (
-        <div className="noti-detail-loading-overlay">
-          <div className="noti-detail-loading-box">
-            <div className="noti-spinner noti-spinner-large"></div>
-            <p>Loading notification details...</p>
-          </div>
-        </div>
-      )}
     </>
   );
 };
