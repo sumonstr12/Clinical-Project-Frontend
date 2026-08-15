@@ -34,69 +34,10 @@ export default function ChartsSection() {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     data: [0, 0, 0, 0, 0, 0, 0]
   });
-
-  const data = useDashboardData();
-  if (!data) return <p>Loading...</p>;
-
   const [days, setDays] = useState(7);
+  
 
-  const fetchLineChartData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await myaxios.get('/admin/dashboard/chart-data/', {
-        params: {
-          days: days
-        }
-      });
-
-      if (response.data.status) {
-        setLineData({
-          labels: response.data.appointment_chart.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          data: response.data.appointment_chart.data || [0, 0, 0, 0, 0, 0, 0]
-        });
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch chart data');
-      console.error('Error fetching chart data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLineChartData();
-  }, [days]);
-
-  const lineChartData = {
-    labels: lineData.labels,
-    datasets: [
-      {
-        label: 'Appointments',
-        data: lineData.data,
-        borderColor: '#60a5fa',
-        backgroundColor: 'rgba(96, 165, 250, 0.1)',
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
-
-  const pieChartData = {
-    labels: ['Patients', 'Doctors', 'Caregivers'],
-    datasets: [
-      {
-        data: [
-          data.total_patients,
-          data.total_doctors,
-          data.total_caregivers
-        ],
-        backgroundColor: ['#60a5fa', '#34d399', '#a78bfa'],
-        borderWidth: 0,
-      },
-    ],
-  };
+  const dashboardData = useDashboardData();
 
   const chartOptions = {
     responsive: true,
@@ -141,7 +82,75 @@ export default function ChartsSection() {
     },
   };
 
-  if (loading) {
+  const defaultPieData = {
+    labels: ['Patients', 'Doctors', 'Caregivers'],
+    datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: ['#60a5fa', '#34d399', '#a78bfa'],
+      borderWidth: 0,
+    }],
+  };
+
+  const fetchLineChartData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await myaxios.get('/admin/dashboard/chart-data/', {
+        params: {
+          days: days
+        }
+      });
+
+      if (response.data.status) {
+        setLineData({
+          labels: response.data.appointment_chart.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: response.data.appointment_chart.data || [0, 0, 0, 0, 0, 0, 0]
+        });
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch chart data');
+      console.error('Error fetching chart data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLineChartData();
+  }, [days]);
+
+  const lineChartData = {
+    labels: lineData.labels,
+    datasets: [
+      {
+        label: 'Appointments',
+        data: lineData.data,
+        borderColor: '#60a5fa',
+        backgroundColor: 'rgba(96, 165, 250, 0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+    ],
+  };
+
+  const pieChartData = dashboardData ? {
+    labels: ['Patients', 'Doctors', 'Caregivers'],
+    datasets: [
+      {
+        data: [
+          dashboardData.total_patients || 0,
+          dashboardData.total_doctors || 0,
+          dashboardData.total_caregivers || 0
+        ],
+        backgroundColor: ['#60a5fa', '#34d399', '#a78bfa'],
+        borderWidth: 0,
+      },
+    ],
+  } : defaultPieData;
+
+
+  if (loading || !dashboardData) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-slate-800 rounded-2xl p-6 shadow-xl">
@@ -152,7 +161,7 @@ export default function ChartsSection() {
         <div className="bg-slate-800 rounded-2xl p-6 shadow-xl">
           <h3 className="text-xl font-semibold mb-6">User Distribution</h3>
           <div className="h-64">
-            <Pie data={pieChartData} options={pieChartOptions} />
+            <Pie data={defaultPieData} options={pieChartOptions} />
           </div>
         </div>
       </div>
@@ -170,7 +179,7 @@ export default function ChartsSection() {
         <div className="bg-slate-800 rounded-2xl p-6 shadow-xl">
           <h3 className="text-xl font-semibold mb-6">User Distribution</h3>
           <div className="h-64">
-            <Pie data={pieChartData} options={pieChartOptions} />
+            <Pie data={defaultPieData} options={pieChartOptions} />
           </div>
         </div>
       </div>
@@ -179,7 +188,6 @@ export default function ChartsSection() {
 
   return (
     <>
-     
       <div className="flex justify-end mb-4">
         <select
           value={days}
@@ -194,7 +202,6 @@ export default function ChartsSection() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
         <div className="bg-slate-800 rounded-2xl p-6 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold">Appointments Overview</h3>

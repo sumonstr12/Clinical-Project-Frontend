@@ -411,7 +411,7 @@ export default function Topbar() {
               </button>
 
               {notificationsOpen && (
-                <div className="notification-dropdown absolute right-0 mt-2 w-96 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 py-2 max-h-[500px] overflow-y-auto">
+                <div className="notification-dropdown absolute right-0 mt-2 w-96 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 py-2 max-h-125 overflow-y-auto">
                   <div className="px-4 py-2 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800 z-10">
                     <h3 className="font-semibold text-white">
                       Notifications
@@ -461,7 +461,7 @@ export default function Topbar() {
                             </div>
                             <button
                               onClick={(e) => deleteNotification(notification.id, e)}
-                              className="ml-2 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"
+                              className="ml-2 text-slate-500 hover:text-red-400 transition-colors shrink-0"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -501,7 +501,7 @@ export default function Topbar() {
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="profile-btn flex items-center space-x-3 text-slate-300 hover:text-white transition-colors"
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <span className="hidden md:block font-medium">{fname}</span>
