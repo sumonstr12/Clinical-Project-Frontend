@@ -408,7 +408,8 @@ export default function RecentAppointments() {
                   </tr>
                 ) : (
                   appointments.map((appointment, index) => {
-                    const { date, time } = formatDateTime(appointment.created_at || appointment.appointment_date);
+                    const  date = formatDateTime(appointment.appointment_date || appointment.created_at).date;
+                    const time = appointment.slot || "N/A";
                     const patientName = appointment.patient?.user?.full_name || "Unknown Patient";
                     const doctorName = appointment.provider?.user?.full_name || "Unknown Doctor";
                     

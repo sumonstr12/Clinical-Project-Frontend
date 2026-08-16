@@ -334,7 +334,7 @@ export default function AppointmentList() {
                   <th className="px-4 py-4 font-medium">Patient</th>
                   <th className="px-4 py-4 font-medium">Provider</th>
                   <th className="px-4 py-4 font-medium">Date</th>
-                  <th className="px-4 py-4 font-medium">Slot</th>
+                  <th className="px-4 py-4 font-medium">Time</th>
                   <th className="px-4 py-4 font-medium">Status</th>
                 </tr>
               </thead>
