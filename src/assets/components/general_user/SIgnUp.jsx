@@ -389,7 +389,7 @@ const SignUp = () => {
               </button>
 
               {/* Social Signup */}
-              <div className="signup-divider">
+              {/* <div className="signup-divider">
                 <span>or sign up with</span>
               </div>
 
@@ -406,7 +406,7 @@ const SignUp = () => {
                   <i className="fab fa-apple"></i>
                   Apple
                 </button>
-              </div>
+              </div> */}
 
               {/* Login Link */}
               <div className="signin-link">

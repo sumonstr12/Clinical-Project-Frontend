@@ -181,7 +181,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="form-group checkbox-group">
+              {/* <div className="form-group checkbox-group">
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -191,7 +191,7 @@ const Login = () => {
                   />
                   <span className="checkbox-text">Remember me for 30 days</span>
                 </label>
-              </div>
+              </div> */}
 
               <button type="submit" className="btn-login-submit" disabled={isLoading}>
                 {isLoading ? (
@@ -207,11 +207,11 @@ const Login = () => {
                 )}
               </button>
 
-              <div className="login-divider">
+              {/* <div className="login-divider">
                 <span>or continue with</span>
-              </div>
+              </div> */}
 
-              <div className="social-login">
+              {/* <div className="social-login">
                 <button type="button" className="social-btn google" onClick={() => handleSocialLogin('Google')}>
                   <i className="fab fa-google"></i>
                   Google
@@ -224,7 +224,7 @@ const Login = () => {
                   <i className="fab fa-apple"></i>
                   Apple
                 </button>
-              </div>
+              </div> */}
 
               <div className="signup-link">
                 Don't have an account? <a href="#" onClick={goToSignUp}>Create Account</a>

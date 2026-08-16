@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import '../../css/general_user/verifyotp.css';
 import myaxios from '../../utilities/myaxios'
 import { successToast, errorToast } from '../../utilities/toast';
-
 import { useLocation } from "react-router";
 
 const OtpVerify = ({ 
@@ -14,64 +13,62 @@ const OtpVerify = ({
   const location = useLocation();
   const email = location.state?.email || "No email";
 
-
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(300); 
+  const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
-  // Focus first input on mount
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
   }, []);
 
-  // Timer for resend OTP
   useEffect(() => {
     let interval;
     if (timer > 0) {
       interval = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
-    } else {
-      setCanResend(true);
     }
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleChange = (index, value) => {
-    const digit = value.slice(-1); // always take last char
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
-    // allow only numbers
+  const handleChange = (index, value) => {
+    const digit = value.slice(-1);
+    
     if (digit && !/^\d$/.test(digit)) return;
 
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
-
-    // move focus
+    
     if (digit && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
-
-    // auto verify
-    // if (newOtp.every(d => d !== "")) {
-    //   setTimeout(() => handleVerify(), 100);
-    // }
   };
 
   const handleKeyDown = (index, e) => {
-    // Handle backspace
     if (e.key === "Backspace") {
       if (!otp[index] && index > 0) {
-        // Move to previous input on backspace if current is empty
         inputRefs.current[index - 1].focus();
       }
     }
-    // Handle arrow keys
     if (e.key === "ArrowLeft" && index > 0) {
       inputRefs.current[index - 1].focus();
     }
@@ -94,14 +91,11 @@ const OtpVerify = ({
     
     setOtp(newOtp);
     
-    // Focus the next empty input or last input
     const nextEmptyIndex = newOtp.findIndex((val) => val === "");
     if (nextEmptyIndex !== -1) {
       inputRefs.current[nextEmptyIndex].focus();
     } else {
       inputRefs.current[5].focus();
-      // Auto-verify if all digits are filled
-      // setTimeout(() => handleVerify(), 100);
     }
   };
 
@@ -109,7 +103,6 @@ const OtpVerify = ({
     const otpValue = inputRefs.current
     .map((input) => input?.value || "")
     .join("");
-    console.log(otpValue)
     if (otpValue.length !== 6) {
       errorToast("⚠️ Please enter a valid 6-digit OTP");
       return;
@@ -121,7 +114,6 @@ const OtpVerify = ({
       const response = await myaxios.post("verify-otp-registration", {
         otp: otpValue
       });
-      console.log(response)
 
       if (response.data.status === true) {
         successToast("OTP verified successfully!");
@@ -129,7 +121,6 @@ const OtpVerify = ({
         
         if (onVerify) onVerify(otpValue);
         
-        // Navigate to login after successful verification
         setTimeout(() => {
           navigate('/patient/login');
         }, 1500);
@@ -147,22 +138,24 @@ const OtpVerify = ({
     if (!canResend) return;
     
     try {
-      // You might want to pass email as prop or get from context
       const response = await myaxios.post("otp-resend", {
-        email: email.replace(/\*+/g, '') // This might need adjustment based on your email format
+        email: email.replace(/\*+/g, '')
       });
       
       if (response.data.status === true) {
         successToast("📨 New OTP sent to your registered email!");
-        setTimer(60);
+        setTimer(300); // Reset expiry timer to 5 minutes
+        setResendTimer(60); // Reset resend cooldown to 1 minute
         setCanResend(false);
         setOtp(["", "", "", "", "", ""]);
         inputRefs.current[0].focus();
       } else {
         errorToast(response.data.message || "Failed to resend OTP");
+        navigate('/patient/signup');
       }
     } catch (error) {
       errorToast(error.response?.data?.message || "Failed to resend OTP");
+      navigate('/patient/signup');
     }
   };
 
@@ -284,29 +277,21 @@ const OtpVerify = ({
                   onClick={handleResend}
                   disabled={!canResend}
                 >
-                  {canResend ? "Resend Code" : `Resend in ${formatTime(timer)}`}
+                  {canResend ? "Resend Code" : `Resend in ${formatTime(resendTimer)}`}
                 </button>
               </div>
 
-              {/* Alternative Options */}
-              <div className="otp-alternatives">
-                <button type="button" className="alt-btn" onClick={() => errorToast("📞 Contact support at +1 (800) 555-CARE")}>
-                  <i className="fas fa-phone-alt"></i>
-                  Get via Call
-                </button>
-                <button type="button" className="alt-btn" onClick={() => errorToast("📱 WhatsApp support coming soon!")}>
-                  <i className="fab fa-whatsapp"></i>
-                  Get via WhatsApp
-                </button>
-              </div>
 
               {/* Back to Sign Up */}
-              <div className="back-to-login">
-                <button onClick={goToSignUp} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>
-                  <i className="fas fa-arrow-left"></i>
-                  Back to Sign Up
-                </button>
-              </div>
+             <div className="mt-5 pt-4 text-center border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={goToSignUp} 
+                className="inline-flex items-center gap-2 bg-transparent border-none text-gray-600 dark:text-gray-400 text-sm font-medium cursor-pointer px-4 py-2 rounded-lg transition-all duration-300 hover:text-teal-400 hover:bg-teal-400/10 dark:hover:bg-teal-400/20 active:scale-95"
+              >
+                <i className="fas fa-arrow-left text-sm transition-transform duration-300 group-hover:-translate-x-1"></i>
+                <span>Back to Sign Up</span>
+              </button>
+            </div>
             </form>
 
             {/* Security Notice */}

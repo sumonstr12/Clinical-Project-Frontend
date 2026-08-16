@@ -7,10 +7,13 @@ import Footer from '../../partials/Footer'
 
 const SignUpPage = () => {
   return (
-    <div className='sign-up-page-container'>
-        <div className="sign-up-page-section"><Navbar /></div>
+    <div>
+        {/* <div className="sign-up-page-section"><Navbar /></div>
         <div className="sign-up-page-section"><SignUp /></div>
-        <div className="sign-up-page-section"><Footer /></div>
+        <div className="sign-up-page-section"><Footer /></div> */}
+        <Navbar />
+        <SignUp />
+        <Footer />
     </div>
 
   )
