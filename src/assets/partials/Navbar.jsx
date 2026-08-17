@@ -329,7 +329,7 @@ const Navbar = () => {
         <div className="noti-nav-auth">
           {!isLoggedIn ? (
             <>
-              <button className="noti-btn-signin" onClick={goToSignUp}>Sign Up</button>
+              {/* <button className="noti-btn-signin" onClick={goToSignUp}>Sign Up</button> */}
               <button className="noti-btn-login" onClick={goToLogin}>Login</button>
             </>
           ) : (
@@ -529,7 +529,7 @@ const Navbar = () => {
           {!isLoggedIn ? (
             <>
               <button className="noti-btn-signin noti-mobile-btn" onClick={goToSignUp}>Sign Up</button>
-              <button className="noti-btn-login noti-mobile-btn" onClick={goToLogin}>Login</button>
+              <button className="noti-btn-signin noti-mobile-btn" onClick={goToLogin}>Login</button>
             </>
           ) : (
             <div className="noti-mobile-profile">

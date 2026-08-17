@@ -1108,3 +1108,17 @@
     display: none;
   }
 }
+
+/* Hide login button on mobile devices */
+@media (max-width: 768px) {
+  .noti-btn-login {
+    display: none !important;
+  }
+}
+
+/* Show login button on desktop */
+@media (min-width: 769px) {
+  .noti-btn-login {
+    display: inline-block;
+  }
+}
